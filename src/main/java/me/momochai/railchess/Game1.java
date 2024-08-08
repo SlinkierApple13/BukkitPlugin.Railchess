@@ -394,6 +394,7 @@ public class Game1 {
         }
         while (!taskQueue.isEmpty()) {
             Task fr = taskQueue.poll();
+            broadcast("queue front " + fr.player + ", " + fr.station);
             for (MutablePair<Integer, Integer> i: stationList.get(fr.station).station.neighbour) {
                 StationWrapper nb = stationList.get(i.getRight());
                 if (nb.isReachable(fr.player) || (nb.occupied && nb.occupiedBy != fr.player))
@@ -401,6 +402,7 @@ public class Game1 {
                 nb.setReachable(fr.player);
                 playerList.get(fr.player).maxScore += nb.station.value;
                 taskQueue.add(new Task(fr.player, i.getRight()));
+                broadcast("queue add " + fr.player + ", " + i.getRight());
             }
         }
         for (StationWrapper stw: stationList.values())
