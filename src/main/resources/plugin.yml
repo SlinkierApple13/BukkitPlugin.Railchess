@@ -1,0 +1,26 @@
+name: Railchess
+version: '${project.version}'
+main: me.momochai.railchess.Railchess
+api-version: '1.20'
+load: STARTUP
+commands:
+  rc:
+    permission: railchess.play
+  rcedit:
+    permission: railchess.edit
+  rcgame:
+    permission: railchess.subscribe
+permissions:
+  railchess.edit:
+    description: Permission for editing maps
+    default: op
+    children:
+      railchess.play: true
+      railchess.subscribe: true
+  railchess.play:
+    description: Permission for playing Railchess games
+    default: true
+    children:
+      railchess.subscribe: true
+  railchess.subscribe:
+    description: Permission for subscribing to (i.e., spectating) Railchess games
