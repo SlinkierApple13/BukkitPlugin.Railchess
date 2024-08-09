@@ -75,12 +75,16 @@ public class RailchessCommandHandler implements CommandExecutor {
                     return false;
                 if (!plugin.playerInStand.containsKey(player.getName()))
                     return false;
-                if (args[1] == null || args[2] == null || args[1].isBlank() || args[2].isBlank())
+                if (args[1] == null || args[2] == null || args[1].isBlank() || args[2].isBlank() ||
+                        args[3] == null || args[3].isBlank())
                     return false;
                 if (Integer.parseInt(args[2]) <= 0 || Integer.parseInt(args[2]) >= 13)
                     return false;
                 RailchessStand stand = plugin.playerInStand.get(player.getName());
-                stand.newGame(args[1], Integer.parseInt(args[2]), 5);
+                int maxSteps = Integer.parseInt(args[2]);
+                int maxHurt = Integer.parseInt(args[3]);
+                boolean showChoices = Boolean.parseBoolean(args[4]);
+                return stand.newGame(args[1], maxSteps, maxHurt, showChoices);
             } else if (args[0].equals("remove")) {
                 if (!player.hasPermission("railchess.edit"))
                     return false;

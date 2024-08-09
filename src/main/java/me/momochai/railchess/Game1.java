@@ -39,6 +39,8 @@ public class Game1 {
     int maxStep;
     int maxHurt;
     boolean available = true;
+    boolean showChoices;
+    public static final double BROADCAST_RANGE = 15.0d;
 
     public Player getCurrentPlayer() {
         return playerList.get(currentPlayer).player;
@@ -60,7 +62,7 @@ public class Game1 {
     public void advance() {
         if (!available) return;
         if (remainingPlayers <= 1) end();
-        if (getCurrent().step != 0) getCurrent().getNextStep();
+        if (getCurrent().step != 0 && !getCurrent().dead) getCurrent().getNextStep();
         do {
             ++currentPlayer;
             if (currentPlayer == n)
@@ -69,8 +71,8 @@ public class Game1 {
         if (getCurrent().step == 0) getCurrent().getStep();
         getCurrent().broadcastStep();
         if (choices(currentPlayer, getCurrent().step, 1, true).isEmpty()) {
-            broadcast(getCurrentPlayer().getName() + " gets stuck (" + getCurrent().hurt + ")");
             ++getCurrent().hurt;
+            broadcast(getCurrentPlayer().getName() + " gets stuck (" + getCurrent().hurt + ")");
             if (getCurrent().hurt == maxHurt)
                 getCurrent().quit(true, "gets stuck too many times", true);
             advance();
@@ -80,6 +82,10 @@ public class Game1 {
     public void broadcast(String s) {
         for (Player pl: subscriber)
             if (pl.isValid())
+                pl.sendMessage(s);
+        if (!available) return;
+        for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
+            if (!subscriber.contains(pl))
                 pl.sendMessage(s);
     }
 
@@ -98,6 +104,7 @@ public class Game1 {
 
         public void getNextStep() {
             step = random.nextInt(maxStep) + 1;
+            if (showChoices) return;
             player.sendMessage("Your next move should involve " + step + (step == 1 ? " step" : " steps"));
         }
 
@@ -106,7 +113,7 @@ public class Game1 {
         }
 
         public void broadcastStep() {
-            broadcast(player.getName() + "'s turn: " + step + (step == 1 ? " step" : " steps"));
+            broadcast(displayName + "'s turn: " + step + (step == 1 ? " step" : " steps"));
         }
 
         public void quit(boolean hasReason, String reason, boolean triggerEnd) {
@@ -115,12 +122,21 @@ public class Game1 {
             else
                 broadcast(displayName + " left: " + reason);
             dead = true;
-            plugin.playerInGame.remove(player.getName());
+            boolean alive = false;
+            for (PlayerWrapper plw: playerList)
+                alive |= (!plw.dead && plw.player.equals(player));
+            if (!alive)
+                plugin.playerInGame.remove(player.getName());
             if (!triggerEnd) {
                 plugin.playerSubGame.remove(player.getName());
                 subscriber.remove(player);
             }
             --remainingPlayers;
+            if (remainingPlayers == 1) {
+                for (PlayerWrapper plw: playerList)
+                    if (!plw.dead)
+                        plw.score = plw.maxScore;
+            }
             if (remainingPlayers <= 1 && triggerEnd)
                 end();
             else if (getCurrent().equals(this))
@@ -150,9 +166,7 @@ public class Game1 {
         int occupiedBy;
         ItemDisplay entity;
         int reachableBy; // sum of (2^(i)) for all reachable player i
-        public static final ItemStack CHOICE = new ItemStack(Material.RED_STAINED_GLASS);
-        public static final ItemStack CHOICE_OCCUPIED = new ItemStack(Material.RED_CONCRETE);
-        public static final ItemStack DEAD = new ItemStack(Material.GRAY_CONCRETE);
+        public static final ItemStack DEAD = new ItemStack(Material.WHITE_STAINED_GLASS);
         public static final ItemStack NORMAL = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS);
 
         public void update() {
@@ -236,6 +250,29 @@ public class Game1 {
 
     ArrayList<PlayerWrapper> playerList = new ArrayList<>();
     Map<Integer, StationWrapper> stationList = new HashMap<>();
+    public Material darkened(@NotNull Material mat) {
+        if (mat.equals(Material.ORANGE_STAINED_GLASS))
+            return Material.BROWN_STAINED_GLASS;
+        if (mat.equals(Material.ORANGE_CONCRETE))
+            return Material.BROWN_CONCRETE;
+        if (mat.equals(Material.PINK_STAINED_GLASS))
+            return Material.MAGENTA_STAINED_GLASS;
+        if (mat.equals(Material.PINK_CONCRETE))
+            return Material.MAGENTA_CONCRETE;
+        if (mat.equals(Material.LIGHT_BLUE_STAINED_GLASS))
+            return Material.BLUE_STAINED_GLASS;
+        if (mat.equals(Material.LIGHT_BLUE_CONCRETE))
+            return Material.BLUE_CONCRETE;
+        if (mat.equals(Material.LIME_STAINED_GLASS))
+            return Material.GREEN_STAINED_GLASS;
+        if (mat.equals(Material.LIME_CONCRETE))
+            return Material.GREEN_CONCRETE;
+        if (mat.equals(Material.LIGHT_GRAY_STAINED_GLASS))
+            return Material.GRAY_STAINED_GLASS;
+        if (mat.equals(Material.LIGHT_GRAY_CONCRETE))
+            return Material.GRAY_CONCRETE;
+        return Material.BLACK_CONCRETE;
+    }
 
     public void close() {
         for (StationWrapper stw: stationList.values())
@@ -294,7 +331,7 @@ public class Game1 {
     }
 
     public boolean play(Player pl) {
-        if (!available) return false;
+        if (!available || !pl.equals(getCurrentPlayer())) return false;
         int station = getStation(pl);
         if (station == -1) return false;
         return move(currentPlayer, getCurrent().step, 1, station);
@@ -368,7 +405,13 @@ public class Game1 {
         choices0(pl, playerList.get(pl).position, -1, steps, -1, interchanges, res, new ArrayList<>());
         if (showAvail) res.forEach(i -> {
             try {
-            stationList.get(i).mark(stationList.get(i).occupied ? StationWrapper.CHOICE_OCCUPIED : StationWrapper.CHOICE);
+                Material mat;
+                if (playerList.get(pl).position == i)
+                    mat = darkened(tileList.get(pl).getRight().getRight().getType());
+                else if (stationList.get(i).occupied)
+                    mat = darkened(tileList.get(pl).getRight().getLeft().getType());
+                else mat = darkened(StationWrapper.NORMAL.getType());
+                stationList.get(i).mark(new ItemStack(mat));
             } catch (Exception e) {}
         });
         return res;
@@ -404,9 +447,9 @@ public class Game1 {
         // broadcast("Updating...");
         Queue<Task> taskQueue = new LinkedList<>();
         for (int i = 0; i < n; ++i) {
+            playerList.get(i).maxScore = 0;
             if (playerList.get(i).dead) continue;
             taskQueue.add(new Task(i, playerList.get(i).position));
-            playerList.get(i).maxScore = 0;
             stationList.get(playerList.get(i).position).reachableBy = (1 << i);
             stationList.get(playerList.get(i).position).update();
         }
@@ -489,10 +532,10 @@ public class Game1 {
             case 2 ->
                     MutablePair.of(new ItemStack(Material.PINK_STAINED_GLASS), new ItemStack(Material.PINK_CONCRETE));
             case 3 ->
-                    MutablePair.of(new ItemStack(Material.LIME_STAINED_GLASS), new ItemStack(Material.ORANGE_CONCRETE));
+                    MutablePair.of(new ItemStack(Material.LIME_STAINED_GLASS), new ItemStack(Material.LIME_CONCRETE));
+            // case 4 ->
+            //      MutablePair.of(new ItemStack(Material.YELLOW_STAINED_GLASS), new ItemStack(Material.YELLOW_CONCRETE));
             case 4 ->
-                    MutablePair.of(new ItemStack(Material.YELLOW_STAINED_GLASS), new ItemStack(Material.YELLOW_CONCRETE));
-            case 5 ->
                     MutablePair.of(new ItemStack(Material.LIGHT_BLUE_STAINED_GLASS), new ItemStack(Material.LIGHT_BLUE_CONCRETE));
             default ->
                     MutablePair.of(new ItemStack(Material.BLACK_STAINED_GLASS), new ItemStack(Material.BLACK_CONCRETE));
@@ -512,8 +555,9 @@ public class Game1 {
         return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
     }*/
 
-    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH) {
+    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH, boolean sC) {
         maxHurt = mH;
+        showChoices = sC;
         stand = st;
         plugin = pp;
         sizeH = sH;
@@ -532,15 +576,15 @@ public class Game1 {
                 plugin.playerInGame.put(pl.getName(), this);
             }
         }
-        assert p.size() <= 5;
+        assert p.size() <= 4;
         n = p.size();
         remainingPlayers = p.size();
         Collections.shuffle(p);
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "6Orange", displayTiles(1)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "dPink", displayTiles(2)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(4)));
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(5)));
+        // tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(4)));
+        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(4)));
         Collections.shuffle(tileList);
         spawn.addAll(playMap.spawn);
         playMap.station.forEach((Integer id, Station sta) -> {
