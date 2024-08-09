@@ -96,7 +96,7 @@ public class Railmap {
         scanner.close();
     }
 
-    public void save(@NotNull File file) {
+    public boolean save(@NotNull File file) {
         try {
             if (!file.exists()) file.createNewFile();
             PrintWriter writer = new PrintWriter(file, StandardCharsets.US_ASCII);
@@ -123,7 +123,11 @@ public class Railmap {
                 writer.println(p.getLeft() + " " + p.getRight());
             writer.close();
             System.out.println(file.getName() + " saved successfully");
-        } catch (Exception ignored) {}
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
     }
 
 }

@@ -26,8 +26,13 @@ public class RailchessStand {
     boolean valid = false;
 
     public void broadcast(String s) {
-        for (Player pl: players)
+        List<Player> subscriber = new ArrayList<>();
+        for (Player pl: players) {
+            if (subscriber.contains(pl))
+                continue;
             pl.sendMessage(s);
+            subscriber.add(pl);
+        }
     }
 
     public boolean occupied() {
@@ -149,8 +154,12 @@ public class RailchessStand {
 
     public boolean playerForceJoin(Player pl) {
         if (!occupied() && players.size() < 4) {
-            broadcast(pl.getName() + " joined");
-            pl.sendMessage("Joined stand " + fileName);
+            if (!players.contains(pl)) {
+                broadcast(pl.getName() + " joined");
+                pl.sendMessage("Joined stand " + fileName);
+            } else {
+                broadcast("Duplicated player " + pl.getName());
+            }
             players.add(pl);
             plugin.playerInStand.put(pl.getName(), this);
             return true;
@@ -162,7 +171,8 @@ public class RailchessStand {
         if (!players.contains(pl))
             return false;
         broadcast(pl.getName() + " left");
-        players.remove(pl);
+        while (players.contains(pl))
+            players.remove(pl);
         plugin.playerInStand.remove(pl.getName());
         return true;
     }
