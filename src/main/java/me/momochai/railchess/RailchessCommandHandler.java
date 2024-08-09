@@ -80,7 +80,7 @@ public class RailchessCommandHandler implements CommandExecutor {
                 if (Integer.parseInt(args[2]) <= 0 || Integer.parseInt(args[2]) >= 13)
                     return false;
                 RailchessStand stand = plugin.playerInStand.get(player.getName());
-                stand.newGame(args[1], Integer.parseInt(args[2]));
+                stand.newGame(args[1], Integer.parseInt(args[2]), 5);
             } else if (args[0].equals("remove")) {
                 if (!player.hasPermission("railchess.edit"))
                     return false;

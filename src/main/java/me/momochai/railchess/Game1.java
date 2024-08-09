@@ -69,7 +69,7 @@ public class Game1 {
         if (getCurrent().step == 0) getCurrent().getStep();
         getCurrent().broadcastStep();
         if (choices(currentPlayer, getCurrent().step, 1, true).isEmpty()) {
-            broadcast(getCurrentPlayer().getName() + " gets stuck");
+            broadcast(getCurrentPlayer().getName() + " gets stuck + (" + getCurrent().hurt + ")");
             ++getCurrent().hurt;
             if (getCurrent().hurt == maxHurt)
                 getCurrent().quit(true, "gets stuck too many times", true);
@@ -146,8 +146,10 @@ public class Game1 {
         int occupiedBy;
         ItemDisplay entity;
         int reachableBy; // sum of (2^(i)) for all reachable player i
-        public static final ItemStack CHOICE = new ItemStack(Material.GRAY_STAINED_GLASS);
-        public static final ItemStack CHOICE_OCCUPIED = new ItemStack(Material.GRAY_CONCRETE);
+        public static final ItemStack CHOICE = new ItemStack(Material.RED_STAINED_GLASS);
+        public static final ItemStack CHOICE_OCCUPIED = new ItemStack(Material.RED_CONCRETE);
+        public static final ItemStack DEAD = new ItemStack(Material.GRAY_CONCRETE);
+        public static final ItemStack NORMAL = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS);
 
         public void update() {
             if (dead)
@@ -162,7 +164,7 @@ public class Game1 {
                 autoMark();
                 return;
             }
-            if (reachableBy == 0)
+            if (!occupied && reachableBy == 0)
                 dead = true;
             autoMark();
         }
@@ -177,11 +179,11 @@ public class Game1 {
 
         public void autoMark() {
             if (!occupied) {
-                mark(new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS));
+                mark(new ItemStack(NORMAL));
                 return;
             }
             if (dead) {
-                mark(new ItemStack(Material.GRAY_STAINED_GLASS));
+                mark(new ItemStack(DEAD));
                 return;
             }
             mark(playerList.get(occupiedBy).tile);
@@ -506,7 +508,8 @@ public class Game1 {
         return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
     }*/
 
-    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd) {
+    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH) {
+        maxHurt = mH;
         stand = st;
         plugin = pp;
         sizeH = sH;
