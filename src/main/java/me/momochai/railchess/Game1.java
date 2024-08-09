@@ -58,12 +58,13 @@ public class Game1 {
 
     public void advance() {
         if (remainingPlayers <= 1) end();
-        getCurrent().getNextStep();
+        if (getCurrent().step != 0) getCurrent().getNextStep();
         do {
             ++currentPlayer;
             if (currentPlayer == n)
                 currentPlayer = 0;
         } while (getCurrent().dead);
+        if (getCurrent().step == 0) getCurrent().getStep();
         getCurrent().broadcastStep();
         if (choices(currentPlayer, getCurrent().step, 1).isEmpty()) {
             broadcast(getCurrentPlayer().getName() + " gets stuck");
@@ -88,17 +89,21 @@ public class Game1 {
         ItemStack tile;
         ItemStack tile2;
         int position; // # of the station the player is at in map
-        int step;
+        int step = 0;
         boolean dead;
         int hurt;
 
         public void getNextStep() {
             step = random.nextInt(maxStep) + 1;
-            player.sendMessage("Your next move should involve " + step + "steps");
+            player.sendMessage("Your next move should involve " + step + (step == 1 ? "step" : "steps"));
+        }
+
+        public void getStep() {
+            step = random.nextInt(maxStep) + 1;
         }
 
         public void broadcastStep() {
-            broadcast(player.getName() + " should move " + step + "steps");
+            broadcast(player.getName() + "'s turn:" + step + (step == 1 ? "step" : "steps"));
         }
 
         public void quit(boolean hasReason, String reason) {
@@ -301,7 +306,7 @@ public class Game1 {
 
     }
 
-    private class Task1 {
+/*  private class Task1 {
         int station;
         int line;
         int interchanges;
@@ -316,7 +321,7 @@ public class Game1 {
             remainingSteps = rem;
         }
 
-    }
+    }*/
 
     public void choices0(int pl, int pos, int prev, int steps, int line, int interchanges, List<Integer> res, List<MutablePair<Integer, Integer>> visited) {
         if (steps == 0) {
@@ -351,7 +356,7 @@ public class Game1 {
         return res;
     }
 
-    public List<Integer> choices1(int pl, int steps, int interchanges) {
+/*  public List<Integer> choices1(int pl, int steps, int interchanges) {
         List<Integer> res = new ArrayList<>();
         Queue<Task1> taskQueue = new LinkedList<>();
         taskQueue.add(new Task1(playerList.get(pl).position, -1, interchanges, -1, steps));
@@ -375,7 +380,7 @@ public class Game1 {
             }
         }
         return res;
-    }
+    }*/
 
     public void update() {
         broadcast("Updating...");
@@ -392,17 +397,27 @@ public class Game1 {
                 stw.reachableBy = 1 << stw.occupiedBy;
             else stw.reachableBy = 0;
         }
-        while (!taskQueue.isEmpty()) {
-            Task fr = taskQueue.poll();
-            for (MutablePair<Integer, Integer> i: stationList.get(fr.station).station.neighbour) {
-                StationWrapper nb = stationList.get(i.getRight());
-                if (nb.isReachable(fr.player) || (nb.occupied && nb.occupiedBy != fr.player))
-                    continue;
-                nb.setReachable(fr.player);
-                playerList.get(fr.player).maxScore += nb.station.value;
-                taskQueue.add(new Task(fr.player, i.getRight()));
+        try {
+            while (!taskQueue.isEmpty()) {
+                StringBuilder buf = new StringBuilder();
+                for (Task t: taskQueue)
+                    buf.append("(" + t.player + ", " + t.station + ") ");
+                broadcast(buf.toString());
+                Task fr = taskQueue.poll();
+                for (MutablePair<Integer, Integer> i: stationList.get(fr.station).station.neighbour) {
+                    if (!stationList.containsKey(i.getRight())) continue;
+                    StationWrapper nb = stationList.get(i.getRight());
+                    if (nb.isReachable(fr.player) || (nb.occupied && nb.occupiedBy != fr.player))
+                        continue;
+                    nb.setReachable(fr.player);
+                    playerList.get(fr.player).maxScore += nb.station.value;
+                    taskQueue.add(new Task(fr.player, i.getRight()));
+                }
             }
+        } catch (Exception e) {
+            broadcast(e.getMessage());
         }
+        broadcast("Station claim updated successfully.");
         for (StationWrapper stw: stationList.values())
             stw.update();
         for (PlayerWrapper plw: playerList) {
@@ -432,7 +447,7 @@ public class Game1 {
         plugin.playerSubGame.put(pl.getName(), this);
     }
 
-    public void desubscribe(Player pl) {
+    public void desubscribe(@NotNull Player pl) {
         pl.sendMessage("Leaving game");
         subscriber.remove(pl);
         plugin.playerSubGame.remove(pl.getName());
@@ -479,7 +494,7 @@ public class Game1 {
         return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
     }
 
-    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd) {
+    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd) {
         stand = st;
         plugin = pp;
         sizeH = sH;
@@ -490,8 +505,8 @@ public class Game1 {
         currentPlayer = 0;
         spawnRepellence = playMap.spawnRepellence;
         transferRepellence = playMap.transferRepellence;
-        subscriber.addAll(players);
         for (Player pl: players) {
+            if (!subscriber.contains(pl)) subscriber.add(pl);
             plugin.playerSubGame.put(pl.getName(), this);
             if (pl.hasPermission("railchess.play")) {
                 p.add(pl);
@@ -510,9 +525,9 @@ public class Game1 {
         Collections.shuffle(tileList);
         spawn.addAll(playMap.spawn);
         playMap.station.forEach((Integer id, Station sta) -> {
-            broadcast("Loading station " + id);
+//          broadcast("Loading station " + id);
             stationList.put(id, new StationWrapper(sta));
-            broadcast("Loaded station " + id);
+//          broadcast("Loaded station " + id);
         });
         for (int t = 0; t < 16; ++t) { // try to spawn at most 16 times to avoid spawn repellence
             Collections.shuffle(spawn);
@@ -529,10 +544,12 @@ public class Game1 {
         }
         for (int j = 0; j < n; ++j) {
             Player pl = p.get(j);
-            for (int i = 0; i < n; ++i)
-                pl.sendMessage("The colour for " + p.get(i).getName() + " is " + tileList.get(i).getLeft());
+            broadcast("The colour for " + p.get(j).getName() + " is " + tileList.get(j).getLeft());
             playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j)));
         }
         update();
+        currentPlayer = n - 1;
+        advance();
     }
+
 }

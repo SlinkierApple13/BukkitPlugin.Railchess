@@ -376,10 +376,10 @@ public class MapEditor {
         StationWrapper(Station sta) {
             isSpawn = false;
             station = sta.clone();
-            broadcastMessage("Attempting to create StationWrapper at normPos " +
-                    station.normPos.getLeft() + ", " + station.normPos.getRight());
+//          broadcastMessage("Attempting to create StationWrapper at normPos " +
+//                  station.normPos.getLeft() + ", " + station.normPos.getRight());
             mark(NORMAL);
-            broadcastMessage("Created StationWrapper from station");
+//          broadcastMessage("Created StationWrapper from station");
         }
 
         StationWrapper(MutablePair<Double, Double> nPos) {

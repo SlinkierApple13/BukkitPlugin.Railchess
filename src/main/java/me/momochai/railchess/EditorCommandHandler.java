@@ -101,9 +101,9 @@ public class EditorCommandHandler implements CommandExecutor {
                     int line = Integer.parseInt(args[5]);
                     editor.removeTrainForbid(via, from, to, line);
                 }
-            } else if (args[0].equals("save") && args[1] == null) {
-                plugin.railmap.put(editor.name, editor.toRailmap(true)).save(new File(plugin.mapFolder, editor.name + ".railmap"));
             } else if (args[0].equals("save")) {
+                plugin.railmap.put(editor.name, editor.toRailmap(true)).save(new File(plugin.mapFolder, editor.name + ".railmap"));
+            } else if (args[0].equals("saveAs") && args[1] != null) {
                 plugin.railmap.put(args[1], editor.toRailmap(true, args[1])).save(new File(plugin.mapFolder, args[1] + ".railmap"));
             } else if (args[0].equals("leave")) {
                 editor.editingPlayer.remove(player);

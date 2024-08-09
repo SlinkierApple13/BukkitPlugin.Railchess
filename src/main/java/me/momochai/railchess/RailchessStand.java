@@ -69,7 +69,7 @@ public class RailchessStand {
             sizeH = scanner.nextDouble();
             sizeV = scanner.nextDouble();
             scanner.close();
-            System.out.println(fileName + " loaded successfully");
+            System.out.println("Successfully loaded " + fileName);
             valid = true;
         } catch (Exception ignored) {}
     }
@@ -88,7 +88,7 @@ public class RailchessStand {
             writer.println(sizeH);
             writer.println(sizeV);
             writer.close();
-            System.out.println(fileName + " saved successfully");
+            System.out.println("Successfully saved" + fileName);
         } catch (Exception ignored) {}
     }
 
@@ -120,7 +120,7 @@ public class RailchessStand {
             plugin.playerInStand.remove(pl.getName());
         editor = null;
         game = game1;
-        broadcast("Game started: Map " + mapName + ", Maximum Steps " + maxStep);
+        game.broadcast("Game started: Map " + mapName + ", Maximum Steps " + maxStep);
         players.removeIf(__ -> true);
         return true;
     }

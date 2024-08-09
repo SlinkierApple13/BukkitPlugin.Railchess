@@ -51,7 +51,7 @@ public class Railmap {
         int sts = scanner.nextInt();
         for (int i = 0; i < sts; ++i) {
             int id = scanner.nextInt();
-            System.out.println("Loading railmap " + name + ": station " + id);
+            // System.out.println("Loading railmap " + name + ": station " + id);
             int value = scanner.nextInt();
             double x = scanner.nextDouble();
             double y = scanner.nextDouble();
@@ -74,7 +74,7 @@ public class Railmap {
                 sta.forbid.add(new ForbidTrain(from, line, to));
             }
             station.put(id, sta);
-            System.out.println("Loaded railmap " + name + ": station " + id);
+            // System.out.println("Loaded railmap " + name + ": station " + id);
         }
         int sps = scanner.nextInt();
         for (int i = 0; i < sps; ++i)
