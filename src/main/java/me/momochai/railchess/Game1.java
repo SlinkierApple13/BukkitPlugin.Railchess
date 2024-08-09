@@ -66,7 +66,7 @@ public class Game1 {
         } while (getCurrent().dead);
         if (getCurrent().step == 0) getCurrent().getStep();
         getCurrent().broadcastStep();
-        if (choices(currentPlayer, getCurrent().step, 1).isEmpty()) {
+        if (choices(currentPlayer, getCurrent().step, 1, true).isEmpty()) {
             broadcast(getCurrentPlayer().getName() + " gets stuck");
             ++getCurrent().hurt;
             if (getCurrent().hurt == maxHurt)
@@ -95,7 +95,7 @@ public class Game1 {
 
         public void getNextStep() {
             step = random.nextInt(maxStep) + 1;
-            player.sendMessage("Your next move should involve " + step + (step == 1 ? "step" : "steps"));
+            player.sendMessage("Your next move should involve " + step + (step == 1 ? " step" : " steps"));
         }
 
         public void getStep() {
@@ -103,7 +103,7 @@ public class Game1 {
         }
 
         public void broadcastStep() {
-            broadcast(player.getName() + "'s turn:" + step + (step == 1 ? "step" : "steps"));
+            broadcast(player.getName() + "'s turn: " + step + (step == 1 ? " step" : " steps"));
         }
 
         public void quit(boolean hasReason, String reason) {
@@ -120,7 +120,7 @@ public class Game1 {
                 end();
         }
 
-        PlayerWrapper(Player pl, MutablePair<ItemStack, ItemStack> ti, int pos) {
+        PlayerWrapper(Player pl, @NotNull MutablePair<ItemStack, ItemStack> ti, int pos) {
             position = pos;
             player = pl;
             tile = ti.getLeft();
@@ -142,6 +142,8 @@ public class Game1 {
         int occupiedBy;
         ItemDisplay entity;
         int reachableBy; // sum of (2^(i)) for all reachable player i
+        public static final ItemStack CHOICE = new ItemStack(Material.GRAY_STAINED_GLASS);
+        public static final ItemStack CHOICE_OCCUPIED = new ItemStack(Material.GRAY_CONCRETE);
 
         public void update() {
             if (dead || occupied)
@@ -230,8 +232,7 @@ public class Game1 {
             stw.close();
         subscriber.clear();
         for (PlayerWrapper plw: playerList)
-            plugin.playerInGame.remove(plw.player.getName());
-        playerList.clear();
+            plw.quit(false, "");
         stand.game = null;
     }
 
@@ -247,7 +248,7 @@ public class Game1 {
         return hDir.getCrossProduct(new Vector(0.0, 1.0, 0.0)).normalize();
     }
 
-    public MutablePair<Boolean, MutablePair<Double, Double>> getSight(Player pl) {
+    public MutablePair<Boolean, MutablePair<Double, Double>> getSight(@NotNull Player pl) {
         if (!pl.equals(getCurrentPlayer()))
             return MutablePair.of(false, new MutablePair<>());
         Location eye = pl.getEyeLocation();
@@ -289,7 +290,7 @@ public class Game1 {
         return move(currentPlayer, getCurrent().step, 1, station);
     }
 
-    public double dist2(double a, double b, MutablePair<Double, Double> nPos) {
+    public double dist2(double a, double b, @NotNull MutablePair<Double, Double> nPos) {
         double c = nPos.getLeft();
         double d = nPos.getRight();
         return (a - c) * (a - c) * sizeH * sizeH + (b - d) * (b - d) * sizeV * sizeV;
@@ -350,9 +351,14 @@ public class Game1 {
         }
     }
 
-    public List<Integer> choices(int pl, int steps, int interchanges) {
+    public List<Integer> choices(int pl, int steps, int interchanges, boolean showAvail) {
         List<Integer> res = new ArrayList<>();
         choices0(pl, playerList.get(pl).position, -1, steps, -1, interchanges, res, new ArrayList<>());
+        if (showAvail) res.forEach(i -> {
+            try {
+            stationList.get(i).mark(stationList.get(i).occupied ? StationWrapper.CHOICE_OCCUPIED : StationWrapper.CHOICE);
+            } catch (Exception e) {}
+        });
         return res;
     }
 
@@ -383,7 +389,7 @@ public class Game1 {
     }*/
 
     public void update() {
-        broadcast("Updating...");
+        // broadcast("Updating...");
         Queue<Task> taskQueue = new LinkedList<>();
         for (int i = 0; i < n; ++i) {
             if (playerList.get(i).dead) continue;
@@ -399,10 +405,10 @@ public class Game1 {
         }
         try {
             while (!taskQueue.isEmpty()) {
-                StringBuilder buf = new StringBuilder();
-                for (Task t: taskQueue)
-                    buf.append("(" + t.player + ", " + t.station + ") ");
-                broadcast(buf.toString());
+                // StringBuilder buf = new StringBuilder();
+                // for (Task t: taskQueue)
+                //     buf.append("(" + t.player + ", " + t.station + ") ");
+                // broadcast(buf.toString());
                 Task fr = taskQueue.poll();
                 for (MutablePair<Integer, Integer> i: stationList.get(fr.station).station.neighbour) {
                     if (!stationList.containsKey(i.getRight())) continue;
@@ -417,7 +423,7 @@ public class Game1 {
         } catch (Exception e) {
             broadcast(e.getMessage());
         }
-        broadcast("Station claim updated successfully.");
+        // broadcast("Station claim updated successfully.");
         for (StationWrapper stw: stationList.values())
             stw.update();
         for (PlayerWrapper plw: playerList) {
@@ -456,7 +462,7 @@ public class Game1 {
     public boolean move(int pl, int steps, int interchanges, int destination) {
         if (pl != currentPlayer)
             return false;
-        if (!choices(pl, steps, interchanges).contains(destination))
+        if (!choices(pl, steps, interchanges, true).contains(destination))
             return false;
         playerList.get(pl).position = destination;
         update();
