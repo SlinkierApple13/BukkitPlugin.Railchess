@@ -53,18 +53,19 @@ Each player has a specific colour;
 a player's position and claimed stations will be marked with his/her respective colour.\
 Players can leave the game by typing commands. 
 A player will leave the game automatically if he/she gets stuck too many times, or he/she has no more possible stations to claim.\
-After each move, the players' points will be given in the "<player_name> -- <current_point> / <best_point_possible>" form.\
+After each move, the players' points will be given in the form of\
+"<player_name> -- <current_point> / <best_point_possible>".\
 The game ends if there is only one player left, or all stations have been claimed. 
 The players' final points will be given subsequently.
 
 **Map Editing**\
 A player joins a RailchessStand, and types a command to start editing. When holding a blaze_rod in the main hand, a player\
-right-clicks to select an existing station;\
-left-clicks to select an existing station, or create one if there isn't any;\
-right-clicks while sneaking to select or create a station, and connect it to the previous selected station; and\
-left-clicks while sneaking to remove a station.\
-The line number for connecting the stations can be chosen by commands; 
-by default, every possible path of train exists, e.g., if one connects stations $a$ and $b$, $b$ and $c$, and $b$ and $d$ with the same line, 
+~ right-clicks to select an existing station;\
+~ left-clicks to select an existing station, or create one if there isn't any;\
+~ right-clicks while sneaking to select or create a station, and connect it to the previous selected station; and\
+~ left-clicks while sneaking to remove a station.\
+The line number for connecting the stations can be chosen by commands. 
+By default, every possible path of train exists, e.g., if one connects stations $a$ and $b$, $b$ and $c$, and $b$ and $d$ with the same line, 
 then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. One may block certain train paths through commands.
 
 ### Commands
@@ -103,3 +104,53 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Removes the current RailchessStand.
 
 **/rcgame**: The command for gameplay.
+* **/rcgame leave**\
+  Requires permission: railchess.subscribe.\
+  Leaves current game.
+* **/rcgame spectate**\
+  Requires permission: railchess.subscribe.\
+  Subscribes to the nearest game within $8$ blocks, so as to be informed with developments of the game even if the player is far away.
+* **/rcgame despectate**\
+  Requires permission: railchess.subscribe.\
+  Stop subscribing to the current game.
+
+**/rcedit**: The command for editing maps.
+* **/rcedit join**\
+  Requires permission: railchess.edit.\
+  Joins the nearest map editing in $8$ blocks.
+* **/rcedit leave**\
+  Requires permission: railchess.edit.\
+  Leaves from the current map editing.
+* **/rcedit save**\
+  Requires permission: railchess.edit.\
+  Saves the current map.
+* **/rcedit saveAs \<mapName\>**\
+  Requires permission: railchess.edit.\
+  Saves the current map as the given name. 
+  This command can be used for map copying.
+* **/rcedit flush**\
+  Requires permission: railchess.edit.\
+  Updates the spawns and station values in the map. 
+  Maps are updated automatically on saving.
+* **/rcedit close**\
+  Requires permission: railchess.edit.\
+  Closes the current editor, without saving the map.
+* **/rcedit line <lineNumber>**\
+  Sets the current line number.
+* **/rcedit connect \<connectType\>**\
+  Requires permission: railchess.edit.\
+  If connectType is $0$: removes all connections between the current selected station and the previous selected station.\
+  If connectType is $1$: connects the current selected station with the previous selected station with the current line
+  in only one direction (from previous to current).\
+  If connectType is $2$: connects the current selected station with the previous selected station with the current line in both directions 
+  (same as right-clicking while sneaking with a blaze_rod in the main hand).
+* **/rcedit add|remove notransfer \<line1\> \<line2\>**\
+  Requires permission: railchess.edit.\
+  Forbids or allows taking trains of both of the two given lines in one move.
+* **/rcedit add|remove nospawn**\
+  Requires permission: railchess.edit.\
+  Forbids or allows players spawning in both the current and previous selected station under most circumstances.
+* **/rcedit add|remove notrain \<from\> \<via\> \<to\> \<line\>**\
+  Requires permission: railchess.edit.\
+  Forbids or allows trains from \<from\> to \<to\> via \<via\> on line \<line\>.
+  
