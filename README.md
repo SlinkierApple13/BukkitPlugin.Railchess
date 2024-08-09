@@ -62,7 +62,7 @@ The players' final points will be given subsequently.
 A player joins a RailchessStand, and types a command to start editing. When holding a blaze_rod in the main hand, a player\
 ~ right-clicks to select an existing station;\
 ~ left-clicks to select an existing station, or create one if there isn't any;\
-~ right-clicks while sneaking to select or create a station, and connect it to the previous selected station; and\
+~ right-clicks while sneaking to select or create a station, and connect it to the previous selected station; and,\
 ~ left-clicks while sneaking to remove a station.\
 The line number for connecting the stations can be chosen by commands. 
 By default, every possible path of train exists, e.g., if one connects stations $a$ and $b$, $b$ and $c$, and $b$ and $d$ with the same line, 
