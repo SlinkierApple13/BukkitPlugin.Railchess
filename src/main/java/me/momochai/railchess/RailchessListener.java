@@ -62,7 +62,7 @@ public class RailchessListener implements Listener {
         }
         if (plugin.playerInGame.containsKey(pl.getName())) {
             plugin.playerInGame.get(pl.getName()).subscriber.remove(pl);
-            plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "");
+            plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
         }
         plugin.playerInEditor.remove(pl.getName());
         plugin.playerInGame.remove(pl.getName());
@@ -76,7 +76,8 @@ public class RailchessListener implements Listener {
         }
         if (plugin.playerInGame.containsKey(pl.getName())) {
             plugin.playerInGame.get(pl.getName()).subscriber.remove(pl);
-            plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "");
+            while (plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl) != null)
+                plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
         }
         plugin.playerInEditor.remove(pl.getName());
         plugin.playerInGame.remove(pl.getName());

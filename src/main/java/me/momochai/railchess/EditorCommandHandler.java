@@ -105,8 +105,9 @@ public class EditorCommandHandler implements CommandExecutor {
                 if (plugin.railmap.put(editor.name, editor.toRailmap(true)).save(new File(plugin.mapFolder, editor.name + ".railmap")))
                     player.sendMessage("Map saved successfully");
             } else if (args[0].equals("saveAs") && args[1] != null) {
+                args[1] = args[1].replaceAll("\\s+", "");
                 if (plugin.railmap.put(args[1], editor.toRailmap(true, args[1])).save(new File(plugin.mapFolder, args[1] + ".railmap")))
-                    player.sendMessage("Map saved successfully as " + args[1]);
+                    player.sendMessage("Map saved successfully as " + args[1] + ".railmap");
             } else if (args[0].equals("leave")) {
                 editor.editingPlayer.remove(player);
                 plugin.playerInEditor.remove(player.getName());

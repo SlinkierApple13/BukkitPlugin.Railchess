@@ -28,7 +28,7 @@ public class Game1 {
     ArrayList<MutablePair<String, MutablePair<ItemStack, ItemStack>>> tileList = new ArrayList<>();
     ArrayList<Integer> spawn = new ArrayList<>();
     Location location;
-    Vector hDir = new Vector();
+    Vector hDir;
     Random random = new Random();
     List<Player> subscriber = new ArrayList<>();
     double sizeH; // horizontal size
@@ -49,7 +49,7 @@ public class Game1 {
     }
 
     public void end() {
-        if (available == false) return;
+        if (!available) return;
         available = false;
         broadcast("Final Result: ");
         for (PlayerWrapper pl: playerList)
@@ -71,7 +71,7 @@ public class Game1 {
             broadcast(getCurrentPlayer().getName() + " gets stuck");
             ++getCurrent().hurt;
             if (getCurrent().hurt == maxHurt)
-                getCurrent().quit(true, "gets stuck too many times");
+                getCurrent().quit(true, "gets stuck too many times", true);
             advance();
         }
     }
@@ -90,7 +90,7 @@ public class Game1 {
         ItemStack tile;
         ItemStack tile2;
         int position; // # of the station the player is at in map
-        int step = 0;
+        int step;
         boolean dead;
         int hurt;
 
@@ -107,7 +107,7 @@ public class Game1 {
             broadcast(player.getName() + "'s turn: " + step + (step == 1 ? " step" : " steps"));
         }
 
-        public void quit(boolean hasReason, String reason) {
+        public void quit(boolean hasReason, String reason, boolean triggerEnd) {
             if (!hasReason)
                 broadcast(player.getName() + " quits");
             else
@@ -119,7 +119,7 @@ public class Game1 {
             if (getCurrent().equals(this))
                 advance();
             --remainingPlayers;
-            if (remainingPlayers <= 1)
+            if (remainingPlayers <= 1 && triggerEnd)
                 end();
         }
 
@@ -159,11 +159,11 @@ public class Game1 {
                     if (reachableBy > i) ++occupiedBy;
                 playerList.get(occupiedBy).score += station.value;
                 autoMark();
+                return;
             }
-            if (reachableBy == 0) {
+            if (reachableBy == 0)
                 dead = true;
-                autoMark();
-            }
+            autoMark();
         }
 
         public boolean isReachable(int pl) {
@@ -235,7 +235,7 @@ public class Game1 {
             stw.close();
         subscriber.clear();
         for (PlayerWrapper plw: playerList)
-            plw.quit(false, "");
+            plw.quit(false, "", false);
         stand.game = null;
     }
 
@@ -343,6 +343,8 @@ public class Game1 {
                 continue;
             if (visited.contains(MutablePair.of(pos, nb.getRight())) || visited.contains(MutablePair.of(nb.getRight(), pos)))
                 continue;
+            if (!canTransfer(line, nb.getLeft()))
+                continue;
             int itc = interchanges - (((line == nb.getLeft() || line == -1) &&
                     !stationList.get(pos).station.forbid.contains(new ForbidTrain(
                             prev, line, nb.getRight()
@@ -433,7 +435,7 @@ public class Game1 {
             stationList.get(plw.position).mark(plw.tile2);
             if (plw.dead) continue;
             if (plw.maxScore == plw.score)
-                plw.quit(true, "no more points to gain");
+                plw.quit(true, "no more points to gain", true);
         }
         for (int i = 0; i < n; ++i) {
             broadcast(playerList.get(i).player.getName() + " (" + tileList.get(i).getLeft() +
@@ -499,9 +501,9 @@ public class Game1 {
         return res.add(vec.multiply(sizeH * 0.5));
     }
 
-    public boolean isNearBy(Player pl) {
+/*  public boolean isNearBy(Player pl) {
         return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
-    }
+    }*/
 
     Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd) {
         stand = st;
@@ -556,6 +558,7 @@ public class Game1 {
             broadcast("The colour for " + p.get(j).getName() + " is " + tileList.get(j).getLeft());
             playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j)));
         }
+        broadcast("Game started: Map " + playMap.name + ", Maximum Steps " + maxStep);
         update();
         currentPlayer = n - 1;
         advance();

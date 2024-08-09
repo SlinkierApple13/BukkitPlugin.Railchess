@@ -125,7 +125,6 @@ public class RailchessStand {
             plugin.playerInStand.remove(pl.getName());
         editor = null;
         game = game1;
-        game.broadcast("Game started: Map " + mapName + ", Maximum Steps " + maxStep);
         players = new ArrayList<>();
         return true;
     }
