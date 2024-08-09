@@ -126,7 +126,7 @@ public class RailchessStand {
         editor = null;
         game = game1;
         game.broadcast("Game started: Map " + mapName + ", Maximum Steps " + maxStep);
-        players.removeIf(__ -> true);
+        players = new ArrayList<>();
         return true;
     }
 
@@ -137,7 +137,7 @@ public class RailchessStand {
         editor = editor1;
         for (Player pl: players)
             plugin.playerInStand.remove(pl.getName());
-        players.removeIf(__ -> true);
+        players = new ArrayList<>();
         return true;
     }
 

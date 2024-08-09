@@ -25,7 +25,7 @@ public class Railmap {
 
     public boolean load(@NotNull File file) {
         try {
-            System.out.println("Loading " + file.getName());
+            //  System.out.println("Loading " + file.getName());
             exceptionLoad(file);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -122,7 +122,7 @@ public class Railmap {
             for (MutablePair<Integer, Integer> p : spawnRepellence)
                 writer.println(p.getLeft() + " " + p.getRight());
             writer.close();
-            System.out.println(file.getName() + " saved successfully");
+            System.out.println("Successfully saved " + file.getName());
             return true;
         } catch (Exception e) {
             System.out.println(e.getMessage());

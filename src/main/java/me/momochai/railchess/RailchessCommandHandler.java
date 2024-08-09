@@ -70,12 +70,14 @@ public class RailchessCommandHandler implements CommandExecutor {
                 if (args[1].isBlank()) return false;
                 stand.broadcast("Editing map " + args[1]);
                 stand.newEditor(args[1].replaceAll("\\s+", ""));
-            } else if (args[0].equals("game")) {
+            } else if (args[0].equals("game") || args[0].equals("play")) {
                 if (!player.hasPermission("railchess.play"))
                     return false;
                 if (!plugin.playerInStand.containsKey(player.getName()))
                     return false;
                 if (args[1] == null || args[2] == null || args[1].isBlank() || args[2].isBlank())
+                    return false;
+                if (Integer.parseInt(args[2]) <= 0 || Integer.parseInt(args[2]) >= 13)
                     return false;
                 RailchessStand stand = plugin.playerInStand.get(player.getName());
                 stand.newGame(args[1], Integer.parseInt(args[2]));

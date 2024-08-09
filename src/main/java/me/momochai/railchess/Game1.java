@@ -49,6 +49,7 @@ public class Game1 {
     }
 
     public void end() {
+        if (available == false) return;
         available = false;
         broadcast("Final Result: ");
         for (PlayerWrapper pl: playerList)
@@ -113,6 +114,8 @@ public class Game1 {
                 broadcast(player.getName() + " quits: " + reason);
             dead = true;
             plugin.playerInGame.remove(player.getName());
+            plugin.playerSubGame.remove(player.getName());
+            subscriber.remove(player);
             if (getCurrent().equals(this))
                 advance();
             --remainingPlayers;
