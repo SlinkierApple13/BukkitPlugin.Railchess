@@ -58,6 +58,7 @@ public class Game1 {
     }
 
     public void advance() {
+        if (!available) return;
         if (remainingPlayers <= 1) end();
         if (getCurrent().step != 0) getCurrent().getNextStep();
         do {
@@ -149,10 +150,10 @@ public class Game1 {
         public static final ItemStack CHOICE_OCCUPIED = new ItemStack(Material.GRAY_CONCRETE);
 
         public void update() {
-            if (dead || occupied)
+            if (dead)
                 return;
-            if (reachableBy == 1 || reachableBy == 2 || reachableBy == 4 ||
-                reachableBy == 8 || reachableBy == 16 || reachableBy == 32) {
+            if (!occupied && (reachableBy == 1 || reachableBy == 2 || reachableBy == 4 ||
+                    reachableBy == 8 || reachableBy == 16 || reachableBy == 32)) {
                 occupied = true;
                 occupiedBy = 0;
                 for (int i = 1; i <= 16; i *= 2)
@@ -399,14 +400,14 @@ public class Game1 {
         for (int i = 0; i < n; ++i) {
             if (playerList.get(i).dead) continue;
             taskQueue.add(new Task(i, playerList.get(i).position));
-            playerList.get(i).maxScore = stationList.get(playerList.get(i).position).station.value;
+            playerList.get(i).maxScore = 0;
             stationList.get(playerList.get(i).position).reachableBy = (1 << i);
             stationList.get(playerList.get(i).position).update();
         }
         for (StationWrapper stw: stationList.values()) {
-            if (stw.occupied)
-                stw.reachableBy = 1 << stw.occupiedBy;
-            else stw.reachableBy = 0;
+             if (stw.occupied)
+                 playerList.get(stw.occupiedBy).maxScore += stw.station.value;
+            stw.reachableBy = 0;
         }
         try {
             while (!taskQueue.isEmpty()) {
@@ -421,7 +422,7 @@ public class Game1 {
                     if (nb.isReachable(fr.player) || (nb.occupied && nb.occupiedBy != fr.player))
                         continue;
                     nb.setReachable(fr.player);
-                    playerList.get(fr.player).maxScore += nb.station.value;
+                    if (!nb.occupied) playerList.get(fr.player).maxScore += nb.station.value;
                     taskQueue.add(new Task(fr.player, i.getRight()));
                 }
             }
