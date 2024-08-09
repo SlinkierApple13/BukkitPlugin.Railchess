@@ -110,18 +110,18 @@ public class Game1 {
 
         public void quit(boolean hasReason, String reason, boolean triggerEnd) {
             if (!hasReason)
-                broadcast(player.getName() + " quits");
+                broadcast(player.getName() + " left");
             else
-                broadcast(player.getName() + " quits: " + reason);
+                broadcast(player.getName() + " left: " + reason);
             dead = true;
             plugin.playerInGame.remove(player.getName());
             plugin.playerSubGame.remove(player.getName());
             subscriber.remove(player);
-            if (getCurrent().equals(this))
-                advance();
             --remainingPlayers;
             if (remainingPlayers <= 1 && triggerEnd)
                 end();
+            else if (getCurrent().equals(this))
+                advance();
         }
 
         PlayerWrapper(Player pl, @NotNull MutablePair<ItemStack, ItemStack> ti, int pos) {
@@ -439,6 +439,7 @@ public class Game1 {
             if (plw.dead) continue;
             if (plw.maxScore == plw.score)
                 plw.quit(true, "no more points to gain", true);
+            if (!available) return;
         }
         for (int i = 0; i < n; ++i) {
             broadcast(playerList.get(i).player.getName() + " (" + tileList.get(i).getLeft() +
