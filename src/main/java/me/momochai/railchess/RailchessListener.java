@@ -79,8 +79,12 @@ public class RailchessListener implements Listener {
             while (plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl) != null)
                 plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
         }
+        if (plugin.playerSubGame.containsKey(pl.getName())) {
+            plugin.playerSubGame.get(pl.getName()).desubscribe(pl);
+        }
         plugin.playerInEditor.remove(pl.getName());
         plugin.playerInGame.remove(pl.getName());
+        plugin.playerSubGame.remove(pl.getName());
     }
 
 }

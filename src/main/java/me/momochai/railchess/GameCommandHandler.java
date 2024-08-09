@@ -35,7 +35,7 @@ public class GameCommandHandler implements CommandExecutor {
             } else if (Objects.equals(args[0], "despectate")) {
                 if (plugin.playerSubGame.containsKey(name) && !plugin.playerInGame.containsKey(name))
                     plugin.playerSubGame.get(name).desubscribe(player);
-            } else if (Objects.equals(args[0], "quit")) {
+            } else if (Objects.equals(args[0], "leave")) {
                 if (plugin.playerInGame.containsKey(name))
                     plugin.playerInGame.get(name).getPlayerWrapper(player).quit(false, "", true);
             } else {

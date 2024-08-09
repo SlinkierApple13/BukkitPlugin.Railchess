@@ -103,16 +103,17 @@ public class EditorCommandHandler implements CommandExecutor {
                 }
             } else if (args[0].equals("save")) {
                 if (plugin.railmap.put(editor.name, editor.toRailmap(true)).save(new File(plugin.mapFolder, editor.name + ".railmap")))
-                    player.sendMessage("Map saved successfully");
+                    player.sendMessage("Map saved");
             } else if (args[0].equals("saveAs") && args[1] != null) {
                 args[1] = args[1].replaceAll("\\s+", "");
-                if (plugin.railmap.put(args[1], editor.toRailmap(true, args[1])).save(new File(plugin.mapFolder, args[1] + ".railmap")))
-                    player.sendMessage("Map saved successfully as " + args[1] + ".railmap");
+                plugin.railmap.put(args[1], editor.toRailmap(true, args[1]));
+                plugin.railmap.get(args[1]).save(new File(plugin.mapFolder, plugin.railmap.get(args[1]).name + ".railmap"));
+                player.sendMessage("Map saved as " + args[1] + ".railmap");
             } else if (args[0].equals("leave")) {
                 editor.editingPlayer.remove(player);
                 plugin.playerInEditor.remove(player.getName());
                 editor.broadcastMessage(player.getName() + " has left");
-                player.sendMessage("Successfully left editor");
+                player.sendMessage("Left editor");
             } else if (args[0].equals("close")) {
                 editor.broadcastMessage("Editor closed");
                 editor.close();

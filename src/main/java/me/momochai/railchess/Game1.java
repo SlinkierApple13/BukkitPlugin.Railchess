@@ -53,7 +53,7 @@ public class Game1 {
         available = false;
         broadcast("Final Result: ");
         for (PlayerWrapper pl: playerList)
-            broadcast(pl.player.getName() + " -- " + pl.score);
+            broadcast(pl.displayName + " -- " + pl.score);
         close();
     }
 
@@ -69,7 +69,7 @@ public class Game1 {
         if (getCurrent().step == 0) getCurrent().getStep();
         getCurrent().broadcastStep();
         if (choices(currentPlayer, getCurrent().step, 1, true).isEmpty()) {
-            broadcast(getCurrentPlayer().getName() + " gets stuck + (" + getCurrent().hurt + ")");
+            broadcast(getCurrentPlayer().getName() + " gets stuck (" + getCurrent().hurt + ")");
             ++getCurrent().hurt;
             if (getCurrent().hurt == maxHurt)
                 getCurrent().quit(true, "gets stuck too many times", true);
@@ -94,6 +94,7 @@ public class Game1 {
         int step;
         boolean dead;
         int hurt;
+        String displayName;
 
         public void getNextStep() {
             step = random.nextInt(maxStep) + 1;
@@ -110,13 +111,15 @@ public class Game1 {
 
         public void quit(boolean hasReason, String reason, boolean triggerEnd) {
             if (!hasReason)
-                broadcast(player.getName() + " left");
+                broadcast(displayName + " left");
             else
-                broadcast(player.getName() + " left: " + reason);
+                broadcast(displayName + " left: " + reason);
             dead = true;
             plugin.playerInGame.remove(player.getName());
-            plugin.playerSubGame.remove(player.getName());
-            subscriber.remove(player);
+            if (!triggerEnd) {
+                plugin.playerSubGame.remove(player.getName());
+                subscriber.remove(player);
+            }
             --remainingPlayers;
             if (remainingPlayers <= 1 && triggerEnd)
                 end();
@@ -124,7 +127,7 @@ public class Game1 {
                 advance();
         }
 
-        PlayerWrapper(Player pl, @NotNull MutablePair<ItemStack, ItemStack> ti, int pos) {
+        PlayerWrapper(@NotNull Player pl, @NotNull MutablePair<ItemStack, ItemStack> ti, int pos, String prefix) {
             position = pos;
             player = pl;
             tile = ti.getLeft();
@@ -134,6 +137,7 @@ public class Game1 {
             step = 0;
             dead = false;
             hurt = 0;
+            displayName = prefix + pl.getName() + ChatColor.COLOR_CHAR + "r";
         }
 
     }
@@ -442,8 +446,7 @@ public class Game1 {
             if (!available) return;
         }
         for (int i = 0; i < n; ++i) {
-            broadcast(playerList.get(i).player.getName() + " (" + tileList.get(i).getLeft() +
-                    ChatColor.COLOR_CHAR + "r): " + playerList.get(i).score + " / " + playerList.get(i).maxScore);
+            broadcast(playerList.get(i).displayName + " -- " + playerList.get(i).score + " / " + playerList.get(i).maxScore);
         }
     }
 
@@ -499,11 +502,11 @@ public class Game1 {
     Railchess plugin;
     RailchessStand stand;
 
-    public Location mid() {
+/*  public Location mid() {
         Location res = location.clone();
         Vector vec = hDir.clone();
         return res.add(vec.multiply(sizeH * 0.5));
-    }
+    }*/
 
 /*  public boolean isNearBy(Player pl) {
         return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
@@ -561,7 +564,8 @@ public class Game1 {
         for (int j = 0; j < n; ++j) {
             Player pl = p.get(j);
             broadcast("The colour for " + p.get(j).getName() + " is " + tileList.get(j).getLeft());
-            playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j)));
+            playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j),
+                    tileList.get(j).getLeft().substring(0, 2)));
         }
         broadcast("Game started: Map " + playMap.name + ", Maximum Steps " + maxStep);
         update();

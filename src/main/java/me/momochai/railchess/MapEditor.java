@@ -219,12 +219,12 @@ public class MapEditor {
     public void loadFrom(@NotNull Railmap map) {
         AtomicInteger nid = new AtomicInteger(nextId);
         map.station.forEach((Integer id, Station sta) -> {
-            broadcastMessage("Loading station " + id);
+            // broadcastMessage("Loading station " + id);
             stationList.put(id, new StationWrapper(sta));
-            broadcastMessage("Loaded station " + id);
+            // broadcastMessage("Loaded station " + id);
             if (id >= nid.get())
                 nid.set(id + 1);
-            broadcastMessage("Updated nextId to " + nid.get());
+            // broadcastMessage("Updated nextId to " + nid.get());
         });
         nextId = nid.get();
         for (int i: map.spawn)
@@ -261,14 +261,14 @@ public class MapEditor {
             if (sta.isSpawn)
                 rmp.spawn.add(id);
         });
-        broadcastMessage("Map saved");
+//      broadcastMessage("Map saved");
         return rmp;
     }
 
     public Railmap toRailmap(boolean autoSet, String newName) {
         Railmap rmp = new Railmap();
         if (autoSet) autoSet();
-        rmp.name = newName;
+        rmp.name = newName.replaceAll("\\s+", "");
         rmp.spawnRepellence.addAll(spawnRepellence);
         rmp.transferRepellence.addAll(transferRepellence);
         stationList.forEach((id, sta) -> rmp.station.put(id, sta.station));
@@ -276,7 +276,7 @@ public class MapEditor {
             if (sta.isSpawn)
                 rmp.spawn.add(id);
         });
-        broadcastMessage("Map saved as " + newName);
+//      broadcastMessage("Map saved as " + newName);
         return rmp;
     }
 
