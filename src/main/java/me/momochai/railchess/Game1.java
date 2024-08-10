@@ -166,8 +166,8 @@ public class Game1 {
         int occupiedBy;
         ItemDisplay entity, entity2;
         int reachableBy; // sum of (2^(i)) for all reachable player i
-        public static final ItemStack DEAD = new ItemStack(Material.WHITE_STAINED_GLASS);
-        public static final ItemStack NORMAL = new ItemStack(Material.WHITE_STAINED_GLASS);
+        public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
+        public static final ItemStack NORMAL = new ItemStack(Material.AIR);
 
         public void update() {
             if (dead)
@@ -233,11 +233,11 @@ public class Game1 {
 
         public Location getLocation() {
             World world = location.getWorld();
-            broadcast("Location = (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")");
+            // broadcast("Location = (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")");
             Vector coord = new Vector(location.getX(), location.getY(), location.getZ());
             coord.add(hDir.clone().normalize().multiply(station.normPos.getLeft() * sizeH));
             coord.add(new Vector(0.0, sizeV, 0.0).multiply(station.normPos.getRight()));
-            broadcast("NewLocation = (" + coord.getX() + ", " + coord.getY() + ", " + coord.getZ() + ")");
+            // broadcast("NewLocation = (" + coord.getX() + ", " + coord.getY() + ", " + coord.getZ() + ")");
             return new Location(world, coord.getX(), coord.getY(), coord.getZ());
         }
 
@@ -284,6 +284,8 @@ public class Game1 {
             return Material.LIGHT_GRAY_STAINED_GLASS;
         if (mat.equals(Material.WHITE_CONCRETE))
             return Material.LIGHT_GRAY_CONCRETE;
+        if (mat.equals(Material.AIR))
+            return Material.LIGHT_GRAY_STAINED_GLASS;
         return Material.BLACK_CONCRETE;
     }
 
