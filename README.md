@@ -42,7 +42,7 @@ For details about commands, see the next subsection.
 
 **RailchessStand**\
 A virtual site for playing Railchess games and editing maps. 
-RailchessStands can be created through commands.\ 
+RailchessStands can be created through commands.\
 A RailchessStand does not display actual rail transit maps;
 they must be added manually, for example, by a map-art generator.
 
