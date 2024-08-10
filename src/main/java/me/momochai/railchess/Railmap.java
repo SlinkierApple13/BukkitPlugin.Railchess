@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 public class Railmap {
@@ -94,11 +93,15 @@ public class Railmap {
         System.out.println("Successfully loaded " + file.getName());
         valid = true;
         scanner.close();
+        station.forEach((id, sta) -> {
+           sta.neighbour.removeIf(nb -> !station.containsKey(nb.getRight()));
+           sta.forbid.removeIf(fb -> !station.containsKey(fb.from) || !station.containsKey(fb.to));
+        });
     }
 
     public boolean save(@NotNull File file) {
         try {
-            if (!file.exists()) file.createNewFile();
+            file.createNewFile();
             PrintWriter writer = new PrintWriter(file, StandardCharsets.US_ASCII);
             writer.println(0);
             writer.println(1);

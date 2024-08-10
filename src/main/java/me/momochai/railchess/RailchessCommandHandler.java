@@ -42,6 +42,8 @@ public class RailchessCommandHandler implements CommandExecutor {
                 plugin.stand.add(stand);
                 stand.fileName = System.currentTimeMillis() + ".stand";
                 player.sendMessage("Successfully created " + stand.fileName);
+                stand.save(new File(plugin.standFolder, stand.fileName));
+                stand.save(new File(plugin.standFolder, stand.fileName));
             } else if (args[0].equals("join")) {
                 if (plugin.playerInGame.containsKey(player.getName()) ||
                         plugin.playerInEditor.containsKey(player.getName()) ||
@@ -76,7 +78,7 @@ public class RailchessCommandHandler implements CommandExecutor {
                 if (!plugin.playerInStand.containsKey(player.getName()))
                     return false;
                 if (args[1] == null || args[2] == null || args[1].isBlank() || args[2].isBlank() ||
-                        args[3] == null || args[3].isBlank())
+                        args[3] == null || args[3].isBlank() || args[4] == null || args[4].isBlank())
                     return false;
                 if (Integer.parseInt(args[2]) <= 0 || Integer.parseInt(args[2]) >= 13)
                     return false;
@@ -94,6 +96,7 @@ public class RailchessCommandHandler implements CommandExecutor {
                         for (Player pl: stand.players)
                             stand.playerLeave(pl);
                         plugin.stand.remove(stand);
+                        player.sendMessage("Successfully removed " + args[1]);
                         return new File(plugin.standFolder, stand.fileName).delete();
                     }
                 }

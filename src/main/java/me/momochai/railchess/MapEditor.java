@@ -29,7 +29,7 @@ public class MapEditor {
     Vector hDir;
     double sizeH;
     double sizeV;
-    public static final double STATION_RANGE = 0.2 * 0.2;
+    public static final double STATION_RANGE = 0.1 * 0.1;
     List<Player> editingPlayer = new ArrayList<>();
     int nextId = 1;
     boolean available = true;
@@ -315,9 +315,9 @@ public class MapEditor {
     public class StationWrapper {
 
         Station station;
-        ItemDisplay entity;
+        ItemDisplay entity, entity2;
         boolean isSpawn;
-        public static final ItemStack NORMAL = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS);
+        public static final ItemStack NORMAL = new ItemStack(Material.WHITE_STAINED_GLASS);
         public static final ItemStack HIGHLIGHT = new ItemStack(Material.LIME_STAINED_GLASS);
         public static final ItemStack SELECTED = new ItemStack(Material.ORANGE_CONCRETE);
         public static final ItemStack PREVIOUS = new ItemStack(Material.ORANGE_STAINED_GLASS);
@@ -328,12 +328,20 @@ public class MapEditor {
             Location loc = getLocation();
             if (entity == null || !entity.isValid()) {
                 entity = (ItemDisplay) location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
-                entity.setBrightness(new Display.Brightness(15, 15));
+                entity.setBrightness(new Display.Brightness(15, 0));
                 entity.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.15f, 0.15f, 0.15f), new Quaternionf()));
+                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
             }
             entity.setItemStack(item);
             entity.setInvulnerable(true);
+            if (entity2 == null || !entity2.isValid()) {
+                entity2 = (ItemDisplay) location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
+                entity2.setBrightness(new Display.Brightness(15, 0));
+                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
+                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+            }
+            entity2.setItemStack(item);
+            entity2.setInvulnerable(true);
         }
 
         public void autoSet(boolean autoSpawn, boolean autoValue) {
@@ -363,6 +371,7 @@ public class MapEditor {
 
         public void close() {
             entity.remove();
+            entity2.remove();
         }
 
         public Location getLocation() {

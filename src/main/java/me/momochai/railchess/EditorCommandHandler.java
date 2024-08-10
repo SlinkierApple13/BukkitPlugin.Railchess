@@ -1,10 +1,12 @@
 package me.momochai.railchess;
 
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 
@@ -14,6 +16,27 @@ public class EditorCommandHandler implements CommandExecutor {
 
     EditorCommandHandler(Railchess p) {
         plugin = p;
+    }
+
+    public class saveTask extends BukkitRunnable {
+
+        String mapName;
+        Player player;
+
+        saveTask(String mpn, Player pl) {
+            mapName = mpn;
+            player = pl;
+            // player.sendMessage("Assigning task...");
+            runTaskAsynchronously(plugin);
+        }
+
+        @Override
+        public void run() {
+            // player.sendMessage("Saving...");
+            boolean b = plugin.railmap.get(mapName).save(new File(plugin.mapFolder, mapName + ".railmap"));
+            player.sendMessage((b ? "Map saved" : "Failed to save map") + " as " + mapName);
+        }
+
     }
 
     @Override
@@ -102,13 +125,12 @@ public class EditorCommandHandler implements CommandExecutor {
                     editor.removeTrainForbid(via, from, to, line);
                 }
             } else if (args[0].equals("save")) {
-                if (plugin.railmap.put(editor.name, editor.toRailmap(true)).save(new File(plugin.mapFolder, editor.name + ".railmap")))
-                    player.sendMessage("Map saved");
+                plugin.railmap.put(editor.name, editor.toRailmap(true));
+                new saveTask(editor.name, player);
             } else if (args[0].equals("saveAs") && args[1] != null) {
                 args[1] = args[1].replaceAll("\\s+", "");
                 plugin.railmap.put(args[1], editor.toRailmap(true, args[1]));
-                plugin.railmap.get(args[1]).save(new File(plugin.mapFolder, plugin.railmap.get(args[1]).name + ".railmap"));
-                player.sendMessage("Map saved as " + args[1] + ".railmap");
+                new saveTask(args[1], player);
             } else if (args[0].equals("leave")) {
                 editor.editingPlayer.remove(player);
                 plugin.playerInEditor.remove(player.getName());
@@ -120,7 +142,9 @@ public class EditorCommandHandler implements CommandExecutor {
             } else {
                 return false;
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            if (e instanceof IllegalArgumentException)
+                System.out.println(e.getMessage());
             return false;
         }
         return true;

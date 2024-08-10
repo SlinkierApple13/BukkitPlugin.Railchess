@@ -19,7 +19,7 @@ public final class Railchess extends JavaPlugin {
 
     public void saveAll() {
         stand.forEach(st -> st.save(new File(standFolder, st.fileName)));
-        railmap.forEach((name, map) -> map.save(new File(mapFolder, name + ".railmap")));
+        // railmap.forEach((name, map) -> map.save(new File(mapFolder, name + ".railmap")));
     }
 
     public void closeAll() {
@@ -69,7 +69,7 @@ public final class Railchess extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        closeAll();
         if (loaded) saveAll();
-        if (loaded) closeAll();
     }
 }

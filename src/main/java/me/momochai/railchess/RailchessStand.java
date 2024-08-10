@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -50,6 +51,9 @@ public class RailchessStand {
     RailchessStand(Railchess p, File file) {
         plugin = p;
         load(file);
+        try {
+            if (!file.exists()) file.createNewFile();
+        } catch (IOException ignored) {}
     }
 
     public void load(@NotNull File file) {
@@ -81,7 +85,7 @@ public class RailchessStand {
 
     public void save(@NotNull File file) {
         try {
-            if (!file.exists()) file.createNewFile();
+            file.createNewFile();
             PrintWriter writer = new PrintWriter(file, StandardCharsets.US_ASCII);
             writer.println(0);
             writer.println(location.getWorld().getName());
@@ -93,7 +97,7 @@ public class RailchessStand {
             writer.println(sizeH);
             writer.println(sizeV);
             writer.close();
-            System.out.println("Successfully saved" + fileName);
+            // System.out.println("Successfully saved " + fileName);
         } catch (Exception ignored) {}
     }
 

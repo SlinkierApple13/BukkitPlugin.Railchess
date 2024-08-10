@@ -164,10 +164,10 @@ public class Game1 {
         boolean occupied;
         boolean dead;
         int occupiedBy;
-        ItemDisplay entity;
+        ItemDisplay entity, entity2;
         int reachableBy; // sum of (2^(i)) for all reachable player i
         public static final ItemStack DEAD = new ItemStack(Material.WHITE_STAINED_GLASS);
-        public static final ItemStack NORMAL = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS);
+        public static final ItemStack NORMAL = new ItemStack(Material.WHITE_STAINED_GLASS);
 
         public void update() {
             if (dead)
@@ -210,16 +210,25 @@ public class Game1 {
         public void mark(ItemStack item) {
             if (entity == null || !entity.isValid()) {
                 entity = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
-                entity.setBrightness(new Display.Brightness(15, 15));
+                entity.setBrightness(new Display.Brightness(15, 0));
                 entity.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.15f, 0.15f, 0.15f), new Quaternionf()));
+                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
             }
             entity.setItemStack(item);
             entity.setInvulnerable(true);
+            if (entity2 == null || !entity2.isValid()) {
+                entity2 = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
+                entity2.setBrightness(new Display.Brightness(15, 0));
+                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
+                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+            }
+            entity2.setItemStack(item);
+            entity2.setInvulnerable(true);
         }
 
         public void close() {
             entity.remove();
+            entity2.remove();
         }
 
         public Location getLocation() {
@@ -271,6 +280,10 @@ public class Game1 {
             return Material.GRAY_STAINED_GLASS;
         if (mat.equals(Material.LIGHT_GRAY_CONCRETE))
             return Material.GRAY_CONCRETE;
+        if (mat.equals(Material.WHITE_STAINED_GLASS))
+            return Material.LIGHT_GRAY_STAINED_GLASS;
+        if (mat.equals(Material.WHITE_CONCRETE))
+            return Material.LIGHT_GRAY_CONCRETE;
         return Material.BLACK_CONCRETE;
     }
 

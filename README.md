@@ -99,9 +99,9 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Starts a game with all players in the current RailchessStand with permission railchess.play, with the specified map, 
   the given cap of the random number $n$, and the number of stucks for a player to be permanently skipped.
   If the final parameter is true, all possible options will be highlighted on a player's turn to move.
-* **/rc remove**\
+* **/rc remove \<standName\>**\
   Requires permission: railchess.edit.\
-  Removes the current RailchessStand.
+  Removes the RailchessStand with the given name.
 
 **/rcgame**: The command for gameplay.
 * **/rcgame leave**\
@@ -152,5 +152,9 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Forbids or allows players spawning in both the current and previous selected station under most circumstances.
 * **/rcedit add|remove notrain \<from\> \<via\> \<to\> \<line\>**\
   Requires permission: railchess.edit.\
-  Forbids or allows trains from \<from\> to \<to\> via \<via\> on line \<line\>.
+  Forbids or allows trains from \<from\> to \<to\> via \<via\> on line \<line\>.\
+  Please note that trains from \<to\> to \<from\> via \<via\> are not affected.
   
+Note: Map deletions are very dangerous (since it takes a lot of time to create one), and thus
+there is no command to directly delete a map. 
+However, if one does want to delete a map, one may use "/rcedit saveAs" to cover it with an empty map.
