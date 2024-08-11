@@ -11,14 +11,14 @@ Each station has a **station value**, which is equal to the number of its neighb
 By claiming a station, a player gains points equal to the station's value.
 
 ### Movement
-On a player's turn, the player gets a random number $n$ (from $1$ to some pre-specified value, e.g., 12).
+On a player's turn, the player gets a random number $n$ (from $1$ to some pre-specified value, e.g., $12$).
 Then, the player takes at most two trains, and get off at the $n$-th station. The player claims that station subsequently.
 
 The player's path should not involve duplicate segments ($A\to B\to A$ or $A\to B\to C\to\cdots\to A\to B$); 
 neither should it involve stations claimed by other players previously. 
 
 If no movements are possible, the player gets "stuck", and is skipped for this round.
-If a player gets stuck too many times (e.g., 5), the player will be permanently skipped for the rest of the game.
+If a player gets stuck too many times (e.g., $5$), the player will be permanently skipped for the rest of the game.
 
 ### Autoclaim
 A station is claimed automatically by a player the moment he/she becomes the only player who can possibly reach that station.
@@ -83,7 +83,7 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
 * **/rc join**\
   Requires permission: railchess.play.\
   Joins the nearest RailchessStand within $8$ blocks. 
-  The command fails if no RailchessStands are found, or if the RailchessStand c=already contains no less than $4$ players.
+  The command fails if no RailchessStands are found, or if the RailchessStand already contains $4$ players.
 * **/rc leave**\
   Requires permission: railchess.play.\
   Leaves the current RailchessStand.
