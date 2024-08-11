@@ -45,6 +45,7 @@ public class MapEditor {
     MapEditor(@NotNull Railchess p, @NotNull RailchessStand st, String na, Location loc, Vector hD, double sH, double sV) {
         plugin = p;
         stand = st;
+        st.editor = this;
         for (Player pl: st.players) {
             plugin.playerInStand.remove(pl.getName());
             if (pl.hasPermission("railchess.edit")) {
@@ -52,6 +53,7 @@ public class MapEditor {
                 editingPlayer.add(pl);
             }
         }
+        st.players = new ArrayList<>();
         name = na;
         hDir = hD;
         location = loc;

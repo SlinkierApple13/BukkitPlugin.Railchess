@@ -10,6 +10,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,7 @@ public class Game1 {
     double sizeV; // vertical size
     List<MutablePair<Integer, Integer>> transferRepellence;
     List<MutablePair<Integer, Integer>> spawnRepellence;
+    List<Integer> currentChoices;
     int currentPlayer;
     int maxStep;
     int maxHurt;
@@ -70,12 +72,13 @@ public class Game1 {
         } while (getCurrent().dead);
         if (getCurrent().step == 0) getCurrent().getStep();
         getCurrent().broadcastStep();
-        if (choices(currentPlayer, getCurrent().step, 1, true).isEmpty()) {
+        currentChoices = choices(currentPlayer, getCurrent().step, 1, showChoices);
+        if (currentChoices.isEmpty()) {
             ++getCurrent().hurt;
-            broadcast(getCurrentPlayer().getName() + " gets stuck (" + getCurrent().hurt + ")");
+            broadcast(getCurrent().displayName + " gets stuck (" + getCurrent().hurt + ")");
             if (getCurrent().hurt == maxHurt)
                 getCurrent().quit(true, "gets stuck too many times", true);
-            advance();
+            else advance();
         }
     }
 
@@ -260,10 +263,10 @@ public class Game1 {
     ArrayList<PlayerWrapper> playerList = new ArrayList<>();
     Map<Integer, StationWrapper> stationList = new HashMap<>();
     public Material darkened(@NotNull Material mat) {
-        if (mat.equals(Material.ORANGE_STAINED_GLASS))
-            return Material.BROWN_STAINED_GLASS;
-        if (mat.equals(Material.ORANGE_CONCRETE))
-            return Material.BROWN_CONCRETE;
+        if (mat.equals(Material.YELLOW_STAINED_GLASS))
+            return Material.ORANGE_STAINED_GLASS;
+        if (mat.equals(Material.YELLOW_CONCRETE))
+            return Material.ORANGE_CONCRETE;
         if (mat.equals(Material.PINK_STAINED_GLASS))
             return Material.MAGENTA_STAINED_GLASS;
         if (mat.equals(Material.PINK_CONCRETE))
@@ -285,7 +288,7 @@ public class Game1 {
         if (mat.equals(Material.WHITE_CONCRETE))
             return Material.LIGHT_GRAY_CONCRETE;
         if (mat.equals(Material.AIR))
-            return Material.LIGHT_GRAY_STAINED_GLASS;
+            return Material.WHITE_STAINED_GLASS;
         return Material.BLACK_CONCRETE;
     }
 
@@ -349,7 +352,7 @@ public class Game1 {
         if (!available || !pl.equals(getCurrentPlayer())) return false;
         int station = getStation(pl);
         if (station == -1) return false;
-        return move(currentPlayer, getCurrent().step, 1, station);
+        return move(currentPlayer, station);
     }
 
     public double dist2(double a, double b, @NotNull MutablePair<Double, Double> nPos) {
@@ -529,10 +532,10 @@ public class Game1 {
         plugin.playerSubGame.remove(pl.getName());
     }
 
-    public boolean move(int pl, int steps, int interchanges, int destination) {
+    public boolean move(int pl, int destination) {
         if (pl != currentPlayer)
             return false;
-        if (!choices(pl, steps, interchanges, true).contains(destination))
+        if (!currentChoices.contains(destination))
             return false;
         playerList.get(pl).position = destination;
         update();
@@ -543,7 +546,7 @@ public class Game1 {
     MutablePair<ItemStack, ItemStack> displayTiles(int colour) {
         return switch (colour) {
             case 1 ->
-                    MutablePair.of(new ItemStack(Material.ORANGE_STAINED_GLASS), new ItemStack(Material.ORANGE_CONCRETE));
+                    MutablePair.of(new ItemStack(Material.YELLOW_STAINED_GLASS), new ItemStack(Material.YELLOW_CONCRETE));
             case 2 ->
                     MutablePair.of(new ItemStack(Material.PINK_STAINED_GLASS), new ItemStack(Material.PINK_CONCRETE));
             case 3 ->
@@ -583,6 +586,7 @@ public class Game1 {
         currentPlayer = 0;
         spawnRepellence = playMap.spawnRepellence;
         transferRepellence = playMap.transferRepellence;
+        stand.game = this;
         for (Player pl: players) {
             if (!subscriber.contains(pl)) subscriber.add(pl);
             plugin.playerSubGame.put(pl.getName(), this);
@@ -595,7 +599,7 @@ public class Game1 {
         n = p.size();
         remainingPlayers = p.size();
         Collections.shuffle(p);
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "6Orange", displayTiles(1)));
+        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(1)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "dPink", displayTiles(2)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
         // tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(4)));
@@ -630,6 +634,7 @@ public class Game1 {
         update();
         currentPlayer = n - 1;
         advance();
+        // new AutoAdvance();
     }
 
 }

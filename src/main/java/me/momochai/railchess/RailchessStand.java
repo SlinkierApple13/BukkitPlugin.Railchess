@@ -124,23 +124,18 @@ public class RailchessStand {
             maxStep > 16 || maxStep < 1) return false;
         if (!plugin.railmap.containsKey(mapName))
             return false;
-        Game1 game1 = new Game1(plugin, this, plugin.railmap.get(mapName), players, location, sizeH, sizeV, maxStep, hDir, maxHurt, showChoices);
+        new Game1(plugin, this, plugin.railmap.get(mapName), players, location, sizeH, sizeV, maxStep, hDir, maxHurt, showChoices);
         for (Player pl: players)
             plugin.playerInStand.remove(pl.getName());
         editor = null;
-        game = game1;
         players = new ArrayList<>();
         return true;
     }
 
     public boolean newEditor(String mapName) {
         if (occupied()) return false;
-        MapEditor editor1 = new MapEditor(plugin, this, mapName, location, hDir, sizeH, sizeV);
+        new MapEditor(plugin, this, mapName, location, hDir, sizeH, sizeV);
         game = null;
-        editor = editor1;
-        for (Player pl: players)
-            plugin.playerInStand.remove(pl.getName());
-        players = new ArrayList<>();
         return true;
     }
 
