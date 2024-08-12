@@ -54,6 +54,10 @@ public class Game1 {
             logger.save(new File(plugin.logFolder, logger.logId + ".game1"));
         }
 
+        SaveLog() {
+            runTaskAsynchronously(plugin);
+        }
+
     }
 
     public Player getCurrentPlayer() {
@@ -310,6 +314,7 @@ public class Game1 {
         for (StationWrapper stw: stationList.values())
             stw.close();
         subscriber.clear();
+        new SaveLog();
         for (PlayerWrapper plw: playerList)
             plw.quit(false, "", false);
         stand.game = null;
