@@ -43,7 +43,7 @@ public class Railmap {
             return;
         }
         if (formatVersion == 1) {
-            mapId = scanner.nextInt();
+            mapId = scanner.nextLong();
             readOnly = scanner.nextBoolean();
         } else {
             mapId = System.currentTimeMillis();

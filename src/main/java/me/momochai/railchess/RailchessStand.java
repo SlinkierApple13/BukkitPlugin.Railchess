@@ -3,6 +3,7 @@ package me.momochai.railchess;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,7 +84,27 @@ public class RailchessStand {
         } catch (Exception ignored) {}
     }
 
+    class SaveTask extends BukkitRunnable {
+
+        File file;
+
+        @Override
+        public void run() {
+            save0(file);
+        }
+
+        SaveTask(@NotNull File f) {
+            file = f;
+            this.runTaskAsynchronously(plugin);
+        }
+
+    }
+
     public void save(@NotNull File file) {
+        new SaveTask(file);
+    }
+
+    public void save0(@NotNull File file) {
         try {
             file.createNewFile();
             PrintWriter writer = new PrintWriter(file, StandardCharsets.US_ASCII);
@@ -97,7 +118,7 @@ public class RailchessStand {
             writer.println(sizeH);
             writer.println(sizeV);
             writer.close();
-            // System.out.println("Successfully saved " + fileName);
+            System.out.println("Successfully saved " + fileName);
         } catch (Exception ignored) {}
     }
 

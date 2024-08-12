@@ -33,7 +33,7 @@ public class Game1Logger {
             positions.forEach(a -> buf.append(a).append(" "));
             buf.append("\n");
             deads.forEach(a -> buf.append(a).append(" "));
-            buf.append("\n").append(current).append("\n").append(buffer.size());
+            buf.append("\n").append(current).append("\n").append(buffer.size()).append("\n");
             buffer.forEach(str -> buf.append(str).append("\n"));
             return buf.toString();
         }
@@ -68,10 +68,10 @@ public class Game1Logger {
             int formatVersion = scanner.nextInt();
             if (formatVersion != 0) {
                 scanner.close();
-                return true;
+                return false;
             }
-            logId = scanner.nextInt();
-            mapId = scanner.nextInt();
+            logId = scanner.nextLong();
+            mapId = scanner.nextLong();
             scanner.nextLine();
             time = ZonedDateTime.parse(scanner.nextLine(), DateTimeFormatter.ISO_ZONED_DATE_TIME);
             totalMoves = scanner.nextInt();
@@ -88,6 +88,7 @@ public class Game1Logger {
                     move.positions.add(scanner.nextInt());
                 for (int j = 0; j < playerCount; ++j)
                     move.deads.add(scanner.nextBoolean());
+                move.current = scanner.nextInt();
                 int bufferCount = scanner.nextInt();
                 scanner.nextLine();
                 for (int j = 0; j < bufferCount; ++j)

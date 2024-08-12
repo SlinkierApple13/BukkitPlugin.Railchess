@@ -42,8 +42,7 @@ public class RailchessCommandHandler implements CommandExecutor {
                 plugin.stand.add(stand);
                 stand.fileName = System.currentTimeMillis() + ".stand";
                 player.sendMessage("Successfully created " + stand.fileName);
-                // stand.save(new File(plugin.standFolder, stand.fileName));
-                // stand.save(new File(plugin.standFolder, stand.fileName));
+                stand.save(new File(plugin.standFolder, stand.fileName));
             } else if (args[0].equals("join")) {
                 if (plugin.playerInGame.containsKey(player.getName()) ||
                         plugin.playerInEditor.containsKey(player.getName()) ||

@@ -2,7 +2,7 @@ name: Railchess
 version: '${project.version}'
 main: me.momochai.railchess.Railchess
 api-version: '1.20'
-load: STARTUP
+load: POSTWORLD
 commands:
   rc:
     permission: railchess.play

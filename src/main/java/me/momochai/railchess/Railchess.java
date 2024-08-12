@@ -1,6 +1,7 @@
 package me.momochai.railchess;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -20,7 +21,7 @@ public final class Railchess extends JavaPlugin {
     public File mapFolder;
     public File standFolder;
     public File logFolder;
-    public boolean loaded = false;
+    public final Railchess _thisPlugin = this;
 
     public @Nullable Railmap getMap(String name) {
         if (!railmapDict.containsKey(name))
@@ -35,10 +36,9 @@ public final class Railchess extends JavaPlugin {
         railmapDict.put(map.name, map.mapId);
     }
 
-    public void saveAll() {
-        stand.forEach(st -> st.save(new File(standFolder, st.fileName)));
-        // railmapDict.forEach((name, map) -> map.save(new File(mapFolder, map.name + ".railmap")));
-    }
+//    public void saveAll() {
+//        stand.forEach(st -> st.save0(new File(standFolder, st.fileName)));
+//    }
 
     public void closeAll() {
         stand.forEach(st -> {
@@ -94,6 +94,20 @@ public final class Railchess extends JavaPlugin {
         return true;
     }
 
+    public class LoadAll extends BukkitRunnable {
+        @Override
+        public void run() {
+            loadStands();
+            loadMaps();
+            loadLogs();
+        }
+
+        LoadAll() {
+            this.runTaskAsynchronously(_thisPlugin);
+        }
+
+    }
+
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(new RailchessListener(this), this);
@@ -104,13 +118,12 @@ public final class Railchess extends JavaPlugin {
         mapFolder = new File(getDataFolder(), "railmap");
         logFolder = new File(getDataFolder(), "log");
         standFolder = new File(getDataFolder(), "stand");
-        loaded = loadMaps() && loadLogs() && loadStands();
+        new LoadAll();
     }
 
     @Override
     public void onDisable() {
         closeAll();
-        if (loaded) saveAll();
     }
 
 }
