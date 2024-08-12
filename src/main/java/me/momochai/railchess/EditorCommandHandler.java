@@ -18,23 +18,21 @@ public class EditorCommandHandler implements CommandExecutor {
         plugin = p;
     }
 
-    public class saveTask extends BukkitRunnable {
+    public class SaveTask extends BukkitRunnable {
 
-        String mapName;
-        Player player;
+        long mapId;
+        MapEditor editor;
 
-        saveTask(String mpn, Player pl) {
-            mapName = mpn;
-            player = pl;
-            // player.sendMessage("Assigning task...");
+        SaveTask(long mpn, MapEditor ed) {
+            mapId = mpn;
+            editor = ed;
             runTaskAsynchronously(plugin);
         }
 
         @Override
         public void run() {
-            // player.sendMessage("Saving...");
-            boolean b = plugin.railmap.get(mapName).save(new File(plugin.mapFolder, mapName + ".railmap"));
-            player.sendMessage((b ? "Map saved" : "Failed to save map") + " as " + mapName);
+            boolean b = plugin.railmap.get(mapId).save(new File(plugin.mapFolder, mapId + ".railmap"));
+            editor.broadcastMessage((b ? "Map saved" : "Failed to save the map"));
         }
 
     }
@@ -52,7 +50,7 @@ public class EditorCommandHandler implements CommandExecutor {
                     return false;
                 if (plugin.playerSubGame.containsKey(player.getName()))
                     plugin.playerSubGame.get(player.getName()).desubscribe(player);
-                for (RailchessStand stand: plugin.stand)
+                for (RailchessStand stand : plugin.stand)
                     if (stand.isNearBy(player) && stand.editor != null) {
                         stand.editor.broadcastMessage(player.getName() + " has joined");
                         player.sendMessage("Successfully joined editor " + stand.editor.name + ".railmap");
@@ -125,20 +123,26 @@ public class EditorCommandHandler implements CommandExecutor {
                     editor.removeTrainForbid(via, from, to, line);
                 }
             } else if (args[0].equals("save")) {
-                plugin.railmap.put(editor.name, editor.toRailmap(true));
-                new saveTask(editor.name, player);
+                Railmap rmp = editor.toRailmap(true);
+                if (rmp == null) return false;
+                plugin.addMap(rmp);
+                new SaveTask(rmp.mapId, editor);
             } else if (args[0].equals("saveAs") && args[1] != null) {
                 args[1] = args[1].replaceAll("\\s+", "");
-                plugin.railmap.put(args[1], editor.toRailmap(true, args[1]));
-                new saveTask(args[1], player);
+                Railmap rmp = editor.toRailmap(true, args[1]);
+                if (rmp == null) return false;
+                plugin.addMap(rmp);
+                new SaveTask(rmp.mapId, editor);
             } else if (args[0].equals("leave")) {
                 editor.editingPlayer.remove(player);
                 plugin.playerInEditor.remove(player.getName());
-                editor.broadcastMessage(player.getName() + " has left");
+                editor.broadcastMessage(player.getName() + " left");
                 player.sendMessage("Left editor");
             } else if (args[0].equals("close")) {
                 editor.broadcastMessage("Editor closed");
                 editor.close();
+            } else if (args[0].equals("readonly")) {
+                editor.makeReadOnly();
             } else {
                 return false;
             }

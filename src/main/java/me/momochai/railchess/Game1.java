@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,8 +42,19 @@ public class Game1 {
     int maxStep;
     int maxHurt;
     boolean available = true;
-    boolean showChoices;
+    boolean showChoices = false;
+    boolean log = false;
     public static final double BROADCAST_RANGE = 15.0d;
+    Game1Logger logger;
+
+    public class SaveLog extends BukkitRunnable {
+
+        @Override
+        public void run() {
+            logger.save(new File(plugin.logFolder, logger.logId + ".game1"));
+        }
+
+    }
 
     public Player getCurrentPlayer() {
         return playerList.get(currentPlayer).player;
@@ -63,6 +75,7 @@ public class Game1 {
 
     public void advance() {
         if (!available) return;
+        logger.advance(this);
         if (remainingPlayers <= 1) end();
         if (getCurrent().step != 0 && !getCurrent().dead) getCurrent().getNextStep();
         do {
@@ -86,6 +99,7 @@ public class Game1 {
         for (Player pl: subscriber)
             if (pl.isValid())
                 pl.sendMessage(s);
+        logger.logMessage(s);
         if (!available) return;
         for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
             if (!subscriber.contains(pl))
@@ -587,6 +601,7 @@ public class Game1 {
         spawnRepellence = playMap.spawnRepellence;
         transferRepellence = playMap.transferRepellence;
         stand.game = this;
+        log = playMap.readOnly;
         for (Player pl: players) {
             if (!subscriber.contains(pl)) subscriber.add(pl);
             plugin.playerSubGame.put(pl.getName(), this);
@@ -604,6 +619,8 @@ public class Game1 {
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
         // tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(4)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(4)));
+        if (log)
+            logger = new Game1Logger(p, playMap.mapId);
         Collections.shuffle(tileList);
         spawn.addAll(playMap.spawn);
         playMap.station.forEach((Integer id, Station sta) -> {

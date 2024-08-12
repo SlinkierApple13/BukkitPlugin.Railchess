@@ -10,6 +10,8 @@ commands:
     permission: railchess.edit
   rcgame:
     permission: railchess.subscribe
+  rcmap:
+    permission: railchess.edit
 permissions:
   railchess.edit:
     description: Permission for editing maps

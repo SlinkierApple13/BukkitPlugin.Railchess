@@ -122,10 +122,11 @@ public class RailchessListener implements Listener {
 
     @EventHandler (priority = EventPriority.LOWEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent e) {
-        if (!plugin.loaded) {
-            plugin.loadMaps();
-            plugin.loadStands();
-        }
+//        if (!plugin.loaded) {
+//            plugin.loadMaps();
+//            plugin.loadLogs();
+//            plugin.loadStands();
+//        }
         Player pl = e.getPlayer();
         if (plugin.playerInEditor.containsKey(pl.getName())) {
             plugin.playerInEditor.get(pl.getName()).editingPlayer.remove(pl);

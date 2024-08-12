@@ -8,7 +8,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.bukkit.event.server.BroadcastMessageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -40,7 +39,9 @@ public class MapEditor {
     int currentStation = -1;
     int previousStation = -1;
     int activeLine = -1;
+    boolean readOnly = false;
     RailchessStand stand;
+    long mapId;
 
     MapEditor(@NotNull Railchess p, @NotNull RailchessStand st, String na, Location loc, Vector hD, double sH, double sV) {
         plugin = p;
@@ -54,15 +55,14 @@ public class MapEditor {
             }
         }
         st.players = new ArrayList<>();
-        name = na;
         hDir = hD;
         location = loc;
         sizeH = sH;
         sizeV = sV;
-        if (p.railmap.containsKey(na)) {
-            broadcastMessage("Opening map " + na + ".railmap");
-            loadFrom(p.railmap.get(na));
-        }
+        if (p.railmapDict.containsKey(na)) {
+            broadcastMessage("Opening map " + na);
+            loadFrom(Objects.requireNonNull(p.getMap(na)));
+        } else mapId = System.currentTimeMillis();
         selectLine(1);
     }
 
@@ -95,6 +95,7 @@ public class MapEditor {
     }
 
     public void addTrainForbid(int sta, int from, int to, int line) {
+        if (checkReadOnly()) return;
         if (!stationList.containsKey(sta) || !stationList.containsKey(to) || !stationList.containsKey(from))
             return;
         if (stationList.get(sta).station.forbid.contains(new ForbidTrain(from, line, to)))
@@ -104,6 +105,8 @@ public class MapEditor {
     }
 
     public void removeTrainForbid(int sta, int from, int to, int line) {
+        if (checkReadOnly())
+            return;
         if (!stationList.containsKey(sta) || !stationList.containsKey(to) || !stationList.containsKey(from))
             return;
         if (!stationList.get(sta).station.forbid.contains(new ForbidTrain(from, line, to)))
@@ -119,6 +122,10 @@ public class MapEditor {
     public void parse(Player pl, boolean leftClick, boolean sneaking) {
         if (!editingPlayer.contains(pl))
             return;
+        if (readOnly) {
+            selectStation(getStation(pl, false));
+            return;
+        }
         if (!leftClick && sneaking) {
             int sta = getStation(pl, true);
             if (stationList.containsKey(sta)) {
@@ -137,7 +144,7 @@ public class MapEditor {
         }
     }
 
-    public double dist2(double a, double b, MutablePair<Double, Double> nPos) {
+    public double dist2(double a, double b, @NotNull MutablePair<Double, Double> nPos) {
         double c = nPos.getLeft();
         double d = nPos.getRight();
         return (a - c) * (a - c) * sizeH * sizeH + (b - d) * (b - d) * sizeV * sizeV;
@@ -163,6 +170,7 @@ public class MapEditor {
     }
 
     public int newStation(MutablePair<Double, Double> nPos, @NotNull Consumer<StationWrapper> consumer) {
+        if (checkReadOnly()) return -1;
         consumer.accept(stationList.put(nextId, new StationWrapper(nPos)));
         broadcastMessage("Successfully created Station " + nextId);
         ++nextId;
@@ -193,11 +201,17 @@ public class MapEditor {
     }
 
     public void connect(int from, int to, int line) {
-        if (line < 0) return;
-        broadcastMessage("Added connection " + from + " -> " + to + " on Line " + line);
+        if (line < 0 || checkReadOnly()) return;
         if (stationList.containsKey(from) && stationList.containsKey(to) && from != to)
-            if (!stationList.get(from).station.neighbour.contains(MutablePair.of(line, to)))
+            if (!stationList.get(from).station.neighbour.contains(MutablePair.of(line, to))) {
+                broadcastMessage("Added connection " + from + " -> " + to + " on Line " + line);
                 stationList.get(from).station.neighbour.add(MutablePair.of(line, to));
+            }
+    }
+
+    public boolean checkReadOnly() {
+        if (readOnly) broadcastMessage("This map is read-only");
+        return readOnly;
     }
 
     public void biConnect() {
@@ -210,7 +224,7 @@ public class MapEditor {
     }
 
     public void disconnect(int from, BiFunction<Integer, Integer, Boolean> filter) {
-        if (!stationList.containsKey(from)) return;
+        if (!stationList.containsKey(from) || readOnly) return;
         stationList.get(from).station.neighbour.forEach(pair -> {
             if (filter.apply(pair.getLeft(), pair.getRight()))
                 broadcastMessage("Removed connection " + from + " -> " + pair.getRight() + " on Line " + pair.getLeft());
@@ -219,6 +233,7 @@ public class MapEditor {
     }
 
     public void loadFrom(@NotNull Railmap map) {
+        readOnly = map.readOnly;
         AtomicInteger nid = new AtomicInteger(nextId);
         map.station.forEach((Integer id, Station sta) -> {
             // broadcastMessage("Loading station " + id);
@@ -233,44 +248,49 @@ public class MapEditor {
             stationList.get(i).isSpawn = true;
         spawnRepellence.addAll(map.spawnRepellence);
         transferRepellence.addAll(map.transferRepellence);
-        name = map.name;
+        mapId = map.mapId;
     }
 
     public void removeStation(int sta) {
-        if (!stationList.containsKey(sta)) return;
+        if (checkReadOnly() || !stationList.containsKey(sta)) return;
         broadcastMessage("Removed Station " + sta);
         for (MutablePair<Integer, Integer> s: stationList.get(sta).station.neighbour)
-            disconnect(s.getRight(), (Integer line, Integer st) -> (st == sta));
+            disconnect(s.getRight(), (line, st) -> st == sta);
+        if (sta == currentStation)
+            currentStation = previousStation;
         stationList.get(sta).close();
         stationList.remove(sta);
+        refresh();
     }
 
     public void removeLine(int line) {
+        if (checkReadOnly()) return;
+        ArrayList<Integer> tbdst = new ArrayList<>();
         stationList.forEach((Integer key, StationWrapper value) -> {
             if (value.isOn(line))
                 disconnect(key, (Integer li, Integer st) -> (li == line));
         });
+        broadcastMessage("Removed line " + line);
     }
 
     public Railmap toRailmap(boolean autoSet) {
-        Railmap rmp = new Railmap();
-        if (autoSet) autoSet();
-        rmp.name = name;
-        rmp.spawnRepellence.addAll(spawnRepellence);
-        rmp.transferRepellence.addAll(transferRepellence);
-        stationList.forEach((id, sta) -> rmp.station.put(id, sta.station));
-        stationList.forEach((id, sta) -> {
-            if (sta.isSpawn)
-                rmp.spawn.add(id);
-        });
-//      broadcastMessage("Map saved");
-        return rmp;
+        return toRailmap(autoSet, plugin.railmap.containsKey(mapId) ?
+                plugin.railmap.get(mapId).name : name);
     }
 
-    public Railmap toRailmap(boolean autoSet, String newName) {
+    public Railmap toRailmap(boolean autoSet, @NotNull String newName) {
+        String name1 = newName.replaceAll("\\s+", "");
+        if (plugin.railmapDict.containsKey(name1)) {
+            if (Objects.requireNonNull(plugin.getMap(name1)).readOnly) {
+                broadcastMessage("Map failed to save as " + name1 + ": map " +
+                        name1 + " already exists, and is read-only");
+                return null;
+            }
+        }
         Railmap rmp = new Railmap();
         if (autoSet) autoSet();
-        rmp.name = newName.replaceAll("\\s+", "");
+        rmp.name = name1;
+        rmp.readOnly = readOnly && (plugin.railmapDict.containsKey(name1) && plugin.railmapDict.get(name1) == mapId);
         rmp.spawnRepellence.addAll(spawnRepellence);
         rmp.transferRepellence.addAll(transferRepellence);
         stationList.forEach((id, sta) -> rmp.station.put(id, sta.station));
@@ -278,24 +298,28 @@ public class MapEditor {
             if (sta.isSpawn)
                 rmp.spawn.add(id);
         });
+        if (plugin.railmapDict.containsKey(rmp.name))
+            rmp.mapId = Objects.requireNonNull(plugin.getMap(rmp.name)).mapId;
+        else rmp.mapId = System.currentTimeMillis();
 //      broadcastMessage("Map saved as " + newName);
         return rmp;
     }
 
     public void autoSet() {
+        if (checkReadOnly()) return;
         for (StationWrapper stw: stationList.values())
             stw.autoSet(true, true);
     }
 
-    public Location mid() {
-        Location res = location.clone();
-        Vector vec = hDir.clone();
-        return res.add(vec.multiply(sizeH * 0.5));
-    }
+    // public Location mid() {
+    //     Location res = location.clone();
+    //     Vector vec = hDir.clone();
+    //     return res.add(vec.multiply(sizeH * 0.5));
+    // }
 
-    public boolean isNearBy(Player pl) {
-        return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
-    }
+    // public boolean isNearBy(Player pl) {
+    //     return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
+    // }
 
     public void close() {
         available = false;
@@ -304,6 +328,12 @@ public class MapEditor {
             plugin.playerInEditor.remove(plw.getName());
         editingPlayer.clear();
         stand.editor = null;
+    }
+
+    public void makeReadOnly() {
+        if (readOnly) return;
+        readOnly = true;
+        broadcastMessage("Set map to read-only");
     }
 
     public void refresh() {
@@ -384,7 +414,7 @@ public class MapEditor {
             return new Location(world, coord.getX(), coord.getY(), coord.getZ());
         }
 
-        StationWrapper(Station sta) {
+        StationWrapper(@NotNull Station sta) {
             isSpawn = false;
             station = sta.clone();
 //          broadcastMessage("Attempting to create StationWrapper at normPos " +

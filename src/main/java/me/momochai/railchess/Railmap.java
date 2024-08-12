@@ -15,6 +15,8 @@ public class Railmap {
     List<MutablePair<Integer, Integer>> transferRepellence = new ArrayList<>();
     List<MutablePair<Integer, Integer>> spawnRepellence = new ArrayList<>();
     boolean valid = false;
+    long mapId;
+    boolean readOnly = false;
 
     Railmap() {}
 
@@ -34,11 +36,17 @@ public class Railmap {
     }
 
     public void exceptionLoad(@NotNull File file) throws IOException {
-        Scanner scanner = new Scanner(file, StandardCharsets.US_ASCII);
-        int version = scanner.nextInt();
-        if (version != 0) {
+        Scanner scanner = new Scanner(file);
+        int formatVersion = scanner.nextInt();
+        if (formatVersion > 1 || formatVersion < 0) {
             scanner.close();
             return;
+        }
+        if (formatVersion == 1) {
+            mapId = scanner.nextInt();
+            readOnly = scanner.nextBoolean();
+        } else {
+            mapId = System.currentTimeMillis();
         }
         int rule = scanner.nextInt();
         if (rule != 1) {
@@ -97,13 +105,22 @@ public class Railmap {
            sta.neighbour.removeIf(nb -> !station.containsKey(nb.getRight()));
            sta.forbid.removeIf(fb -> !station.containsKey(fb.from) || !station.containsKey(fb.to));
         });
+        if (formatVersion < 1) {
+            file.renameTo(new File(file.getParentFile(), file.getName() + ".old"));
+            save(new File(file.getParentFile(), mapId + ".railmap"));
+            try {
+                Thread.sleep(2);
+            } catch (InterruptedException ignored) {}
+        }
     }
 
     public boolean save(@NotNull File file) {
         try {
             file.createNewFile();
-            PrintWriter writer = new PrintWriter(file, StandardCharsets.US_ASCII);
-            writer.println(0);
+            PrintWriter writer = new PrintWriter(file);
+            writer.println(1);
+            writer.println(mapId);
+            writer.println(readOnly);
             writer.println(1);
             writer.println(name);
             writer.println(station.size());
