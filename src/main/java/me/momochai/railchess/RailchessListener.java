@@ -52,6 +52,10 @@ public class RailchessListener implements Listener {
                     ed.parse(e.getPlayer(), true, e.getPlayer().isSneaking());
             }
             e.setCancelled(true);
+        } else if (plugin.playerInReplay.containsKey(e.getPlayer().getName())) {
+            Game1Replayer replayer = plugin.playerInReplay.get(e.getPlayer().getName());
+            replayer.advance(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) ? 1 : -1);
+            e.setCancelled(true);
         }
     }
 
@@ -74,6 +78,10 @@ public class RailchessListener implements Listener {
                 ed.parse(e.getPlayer(), false, e.getPlayer().isSneaking());
             }
             e.setCancelled(true);
+        } else if (plugin.playerInReplay.containsKey(e.getPlayer().getName())) {
+            Game1Replayer replayer = plugin.playerInReplay.get(e.getPlayer().getName());
+            replayer.advance(1);
+            e.setCancelled(true);
         }
     }
 
@@ -94,6 +102,10 @@ public class RailchessListener implements Listener {
             if (ed.available) {
                 ed.parse(player, true, player.isSneaking());
             }
+            e.setCancelled(true);
+        } else if (plugin.playerInReplay.containsKey(player.getName())) {
+            Game1Replayer replayer = plugin.playerInReplay.get(player.getName());
+            replayer.advance(-1);
             e.setCancelled(true);
         }
     }
@@ -117,45 +129,23 @@ public class RailchessListener implements Listener {
                 ed.parse(player, true, player.isSneaking());
             }
             e.setCancelled(true);
+        } else if (plugin.playerInReplay.containsKey(player.getName())) {
+            Game1Replayer replayer = plugin.playerInReplay.get(player.getName());
+            replayer.advance(-1);
+            e.setCancelled(true);
         }
     }
 
     @EventHandler (priority = EventPriority.LOWEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent e) {
-//        if (!plugin.loaded) {
-//            plugin.loadMaps();
-//            plugin.loadLogs();
-//            plugin.loadStands();
-//        }
         Player pl = e.getPlayer();
-        if (plugin.playerInEditor.containsKey(pl.getName())) {
-            plugin.playerInEditor.get(pl.getName()).editingPlayer.remove(pl);
-        }
-        if (plugin.playerInGame.containsKey(pl.getName())) {
-            plugin.playerInGame.get(pl.getName()).subscriber.remove(pl);
-            plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
-        }
-        plugin.playerInEditor.remove(pl.getName());
-        plugin.playerInGame.remove(pl.getName());
+        plugin.leaveAll(pl);
     }
 
     @EventHandler (priority = EventPriority.LOWEST)
     public void onPlayerLeave(@NotNull PlayerQuitEvent e) {
         Player pl = e.getPlayer();
-        if (plugin.playerInEditor.containsKey(pl.getName())) {
-            plugin.playerInEditor.get(pl.getName()).editingPlayer.remove(pl);
-        }
-        if (plugin.playerInGame.containsKey(pl.getName())) {
-            plugin.playerInGame.get(pl.getName()).subscriber.remove(pl);
-            while (plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl) != null)
-                plugin.playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
-        }
-        if (plugin.playerSubGame.containsKey(pl.getName())) {
-            plugin.playerSubGame.get(pl.getName()).desubscribe(pl);
-        }
-        plugin.playerInEditor.remove(pl.getName());
-        plugin.playerInGame.remove(pl.getName());
-        plugin.playerSubGame.remove(pl.getName());
+        plugin.leaveAll(pl);
     }
 
 }

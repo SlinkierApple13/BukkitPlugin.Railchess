@@ -570,13 +570,23 @@ public class Game1 {
                     MutablePair.of(new ItemStack(Material.PINK_STAINED_GLASS), new ItemStack(Material.PINK_CONCRETE));
             case 3 ->
                     MutablePair.of(new ItemStack(Material.LIME_STAINED_GLASS), new ItemStack(Material.LIME_CONCRETE));
-            // case 4 ->
-            //      MutablePair.of(new ItemStack(Material.YELLOW_STAINED_GLASS), new ItemStack(Material.YELLOW_CONCRETE));
             case 4 ->
                     MutablePair.of(new ItemStack(Material.LIGHT_BLUE_STAINED_GLASS), new ItemStack(Material.LIGHT_BLUE_CONCRETE));
             default ->
                     MutablePair.of(new ItemStack(Material.BLACK_STAINED_GLASS), new ItemStack(Material.BLACK_CONCRETE));
         };
+    }
+
+    int getColour(String str) {
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "eYellow"))
+            return 1;
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "dPink"))
+            return 2;
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "aLime"))
+            return 3;
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "bLight Blue"))
+            return 4;
+        return -1;
     }
 
     Railchess plugin;
@@ -622,10 +632,12 @@ public class Game1 {
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(1)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "dPink", displayTiles(2)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
-        // tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(4)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(4)));
-        if (log)
+        if (log) {
             logger = new Game1Logger(p, playMap.mapId);
+            for (int i = 0; i < n; ++i)
+                logger.playerColour.add(getColour(tileList.get(i).getLeft()));
+        }
         Collections.shuffle(tileList);
         spawn.addAll(playMap.spawn);
         playMap.station.forEach((Integer id, Station sta) -> {
@@ -651,6 +663,7 @@ public class Game1 {
             broadcast("The colour for " + p.get(j).getName() + " is " + tileList.get(j).getLeft());
             playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j),
                     tileList.get(j).getLeft().substring(0, 2)));
+
         }
         broadcast("Game started: Map " + playMap.name + ", Maximum Steps " + maxStep);
         update();

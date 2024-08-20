@@ -1,7 +1,9 @@
 package me.momochai.railchess;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -15,13 +17,45 @@ public final class Railchess extends JavaPlugin {
     public Map<String, MapEditor> playerInEditor = new HashMap<>(); // key = playerName
     public Map<String, Game1> playerInGame = new HashMap<>(); // key = playerName
     public Map<String, RailchessStand> playerInStand = new HashMap<>(); // key = playerName
-    public Map<String, Game1> playerSubGame = new HashMap<>();
-    // public File deadMapFolder;
+    public Map<String, Game1> playerSubGame = new HashMap<>(); // key = playerName
+    public Map<String, Game1Replayer> playerInReplay = new HashMap<>(); // key = playerName
     public Map<Long, Game1Logger> logList = new HashMap<>();
     public File mapFolder;
     public File standFolder;
     public File logFolder;
     public final Railchess _thisPlugin = this;
+
+    public boolean isAvailable(@NotNull Player player, boolean strict) {
+        return !(playerInGame.containsKey(player.getName()) || playerInEditor.containsKey(player.getName()) || playerInReplay.containsKey(player.getName()) ||
+                (strict && playerSubGame.containsKey(player.getName())) || playerInStand.containsKey(player.getName()));
+    }
+
+    public @Nullable RailchessStand nearbyStand(@NotNull Player player) {
+        for (RailchessStand rcs: stand)
+            if (rcs.isNearBy(player)) return rcs;
+        return null;
+    }
+
+    public void leaveAll(@NotNull Player pl) {
+        if (playerInEditor.containsKey(pl.getName())) {
+            playerInEditor.get(pl.getName()).editingPlayer.remove(pl);
+        }
+        if (playerInGame.containsKey(pl.getName())) {
+            playerInGame.get(pl.getName()).subscriber.remove(pl);
+            while (playerInGame.get(pl.getName()).getPlayerWrapper(pl) != null)
+                playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
+        }
+        if (playerSubGame.containsKey(pl.getName())) {
+            playerSubGame.get(pl.getName()).desubscribe(pl);
+        }
+        if (playerInReplay.containsKey(pl.getName())) {
+            playerInReplay.get(pl.getName()).playerLeave(pl);
+        }
+        playerInEditor.remove(pl.getName());
+        playerInGame.remove(pl.getName());
+        playerSubGame.remove(pl.getName());
+        playerInReplay.remove(pl.getName());
+    }
 
     public @Nullable Railmap getMap(String name) {
         if (!railmapDict.containsKey(name))
@@ -115,6 +149,8 @@ public final class Railchess extends JavaPlugin {
         Objects.requireNonNull(getCommand("rcedit")).setExecutor(new EditorCommandHandler(this));
         Objects.requireNonNull(getCommand("rcgame")).setExecutor(new GameCommandHandler(this));
         Objects.requireNonNull(getCommand("rcmap")).setExecutor(new MapCommandHandler(this));
+        Objects.requireNonNull(getCommand("rcreplay")).setExecutor(new ReplayerCommandHandler(this));
+        Objects.requireNonNull(getCommand("rclog")).setExecutor(new LogCommandHandler(this));
         mapFolder = new File(getDataFolder(), "railmap");
         logFolder = new File(getDataFolder(), "log");
         standFolder = new File(getDataFolder(), "stand");

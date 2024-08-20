@@ -12,6 +12,10 @@ commands:
     permission: railchess.subscribe
   rcmap:
     permission: railchess.edit
+  rcreplay:
+    permission: railchess.subscribe
+  rclog:
+    permission: railchess.subscribe
 permissions:
   railchess.edit:
     description: Permission for editing maps

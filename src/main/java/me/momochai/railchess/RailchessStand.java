@@ -25,6 +25,7 @@ public class RailchessStand {
     public static final double RANGE = 8.0;
     MapEditor editor = null;
     Game1 game = null;
+    Game1Replayer replayer = null;
     boolean valid = false;
 
     public void broadcast(String s) {
@@ -38,7 +39,7 @@ public class RailchessStand {
     }
 
     public boolean occupied() {
-        return !(editor == null && game == null);
+        return !(editor == null && game == null && replayer == null);
     }
 
     RailchessStand(Railchess p, Location loc, Vector h, double sH, double sV) {
@@ -147,7 +148,10 @@ public class RailchessStand {
                 location, sizeH, sizeV, maxStep, hDir, maxHurt, showChoices);
         for (Player pl: players)
             plugin.playerInStand.remove(pl.getName());
+        if (editor != null) editor.close();
+        if (replayer != null) replayer.close();
         editor = null;
+        replayer = null;
         players = new ArrayList<>();
         return true;
     }
@@ -155,8 +159,27 @@ public class RailchessStand {
     public boolean newEditor(String mapName) {
         if (occupied()) return false;
         new MapEditor(plugin, this, mapName, location, hDir, sizeH, sizeV);
+        if (game != null) game.end();
+        if (replayer != null) replayer.close();
         game = null;
-        return true;
+        replayer = null;
+        for (Player pl: players)
+            plugin.playerInStand.remove(pl.getName());
+        players = new ArrayList<>();
+        return occupied();
+    }
+
+    public boolean newReplayer(String mapName, long replayId) {
+        if (occupied()) return false;
+        if (!plugin.railmapDict.containsKey(mapName) || !plugin.logList.containsKey(replayId))
+            return false;
+        Railmap m = plugin.getMap(mapName);
+        Game1Logger log = plugin.logList.get(replayId);
+        new Game1Replayer(plugin, this, m, log);
+        for (Player pl: players)
+            plugin.playerInStand.remove(pl.getName());
+        players = new ArrayList<>();
+        return occupied();
     }
 
     public boolean playerJoin(Player pl) {

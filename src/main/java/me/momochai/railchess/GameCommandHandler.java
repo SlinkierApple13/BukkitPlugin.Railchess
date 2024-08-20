@@ -23,8 +23,7 @@ public class GameCommandHandler implements CommandExecutor {
             if (!player.hasPermission("railchess.subscribe"))
                 return false;
             if (Objects.equals(args[0], "spectate")) {
-                if (plugin.playerInGame.containsKey(name) || plugin.playerInEditor.containsKey(name) ||
-                    plugin.playerInStand.containsKey(name))
+                if (!plugin.isAvailable(player, false))
                     return false;
                 for (RailchessStand st: plugin.stand)
                     if (st.isNearBy(player)) {

@@ -50,14 +50,12 @@ public class EditorCommandHandler implements CommandExecutor {
                     return false;
                 if (plugin.playerSubGame.containsKey(player.getName()))
                     plugin.playerSubGame.get(player.getName()).desubscribe(player);
-                for (RailchessStand stand : plugin.stand)
-                    if (stand.isNearBy(player) && stand.editor != null) {
-                        stand.editor.broadcastMessage(player.getName() + " has joined");
-                        player.sendMessage("Successfully joined editor " + stand.editor.name + ".railmap");
-                        stand.editor.editingPlayer.add(player);
-                        plugin.playerInEditor.put(player.getName(), stand.editor);
-                        break;
-                    }
+                RailchessStand stand = plugin.nearbyStand(player);
+                if (stand == null) return false;
+                stand.editor.broadcastMessage(player.getName() + " has joined");
+                player.sendMessage("Successfully joined editor " + stand.editor.name + ".railmap");
+                stand.editor.editingPlayer.add(player);
+                plugin.playerInEditor.put(player.getName(), stand.editor);
                 return true;
             }
             if (!plugin.playerInEditor.containsKey(sender.getName()))
