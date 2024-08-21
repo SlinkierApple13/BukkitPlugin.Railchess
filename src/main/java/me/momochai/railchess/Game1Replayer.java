@@ -44,6 +44,8 @@ public class Game1Replayer {
     }
 
     public void close() {
+        ArrayList<Player> pls = new ArrayList<>(subscriberList);
+        pls.forEach(this::playerLeave);
         stationList.forEach((id, st) -> st.close());
     }
 
@@ -162,7 +164,7 @@ public class Game1Replayer {
         subscriberList.remove(pl);
     }
 
-    Game1Replayer(Railchess p, RailchessStand s, Railmap m, Game1Logger l) {
+    Game1Replayer(Railchess p, @NotNull RailchessStand s, Railmap m, Game1Logger l) {
         plugin = p;
         stand = s;
         map = m;

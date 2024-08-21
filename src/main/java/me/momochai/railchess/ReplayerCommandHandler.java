@@ -35,6 +35,10 @@ public class ReplayerCommandHandler implements CommandExecutor {
                 plugin.playerInReplay.get(player.getName()).jumpTo(step);
                 return true;
             }
+            if (args[0].equals("close") && plugin.playerInReplay.containsKey(player.getName())) {
+                plugin.playerInReplay.get(player.getName()).close();
+                return true;
+            }
         } catch (Exception e) {
             return false;
         }

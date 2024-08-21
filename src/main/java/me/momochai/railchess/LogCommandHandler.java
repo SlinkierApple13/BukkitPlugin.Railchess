@@ -14,7 +14,7 @@ public class LogCommandHandler implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args[0].equals("list")) {
             plugin.logList.forEach((id, log) -> {
                String str = log.brief(plugin);

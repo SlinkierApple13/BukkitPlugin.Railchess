@@ -58,6 +58,12 @@ After each move, the players' points will be given in the form of\
 The game ends if there is only one player left, or all stations have been claimed. 
 The players' final points will be given subsequently.
 
+**Game Replay**\
+A player joins a RailchessStand, and types a command to replay a previous game. 
+When holding a blaze_rod in the main hand, a player\
+~ right-clicks to go to the next move;\
+~ left-clicks to go to the previous move.
+
 **Map Editing**\
 A player joins a RailchessStand, and types a command to start editing. When holding a blaze_rod in the main hand, a player\
 ~ right-clicks to select an existing station;\
@@ -99,6 +105,9 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Starts a game with all players in the current RailchessStand with permission railchess.play, with the specified map, 
   the given cap of the random number $n$, and the number of stucks for a player to be permanently skipped.
   If the final parameter is true, all possible options will be highlighted on a player's turn to move.
+* **/rc replay \<gameId\>**\
+  Requires permission: railchess.subscribe.\
+  Starts replaying the game with the given id.
 * **/rc remove \<standName\>**\
   Requires permission: railchess.edit.\
   Removes the RailchessStand with the given name.
@@ -112,7 +121,34 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Subscribes to the nearest game within $8$ blocks, so as to be informed with developments of the game even if the player is far away.
 * **/rcgame despectate**\
   Requires permission: railchess.subscribe.\
-  Stop subscribing to the current game.
+  Stops subscribing to the current game.
+
+**/rclog**: The command for game logs.
+* **/rclog list**
+  Requires permission: railchess.subscribe.\
+  Lists all previous game logs.
+
+**/rcreplay**: The command for game replays.
+* **/rcreplay join**\
+  Requires permission: railchess.subscribe.\
+  Joins a nearby game replay.
+* **/rcreplay leave**\
+  Requires permission: railchess.subscribe.\
+  Leaves the present game replay.
+* **/rcreplay goto \<step\>**\
+  Requires permission: railchess.subscribe.\
+  Jumps to the given step.
+* **/rcreplay close**\
+  Requires permission: railchess.subscribe.\
+  Closes the current replay.
+
+**/rcmap**: The command for maps.
+* **/rcmap list**\
+  Requires permission: railchess.subscribe.\
+  Lists all available maps.
+* **/rcmap rename \<from\> \<to\>**\
+  Requires permission: railchess.edit.\
+  Renames the specified map to the given name.
 
 **/rcedit**: The command for editing maps.
 * **/rcedit join**\
@@ -135,6 +171,9 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
 * **/rcedit close**\
   Requires permission: railchess.edit.\
   Closes the current editor, without saving the map.
+* **/rcedit readonly**\
+  Requires permission: railchess.edit.\
+  Sets the current map to read-only (so that games can be recorded and replayed).
 * **/rcedit line <lineNumber>**\
   Sets the current line number.
 * **/rcedit connect \<connectType\>**\
