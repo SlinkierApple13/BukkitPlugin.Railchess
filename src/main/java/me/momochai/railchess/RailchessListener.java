@@ -33,6 +33,7 @@ public class RailchessListener implements Listener {
             if (!Objects.requireNonNull(e.getItem()).getType().equals(ITEM))
                 return;
         } catch (NullPointerException exception) { return; }
+        if (plugin.isNearbyStand(e.getPlayer())) e.setCancelled(true);
         if (!e.getPlayer().hasPermission("railchess.edit") && !e.getPlayer().hasPermission("railchess.play"))
             return;
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());
@@ -65,6 +66,7 @@ public class RailchessListener implements Listener {
             if (!Objects.requireNonNull(e.getPlayer().getInventory().getItemInMainHand()).getType().equals(ITEM))
                 return;
         } catch (NullPointerException exception) { return; }
+        if (plugin.isNearbyStand(e.getPlayer())) e.setCancelled(true);
         if (!e.getPlayer().hasPermission("railchess.edit") && !e.getPlayer().hasPermission("railchess.play"))
             return;
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());
@@ -94,6 +96,7 @@ public class RailchessListener implements Listener {
             if (!Objects.requireNonNull(player.getInventory().getItemInMainHand()).getType().equals(ITEM))
                 return;
         } catch (NullPointerException exception) { return; }
+        if (plugin.isNearbyStand(player)) e.setCancelled(true);
         if (!player.hasPermission("railchess.edit"))
             return;
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());
@@ -120,6 +123,7 @@ public class RailchessListener implements Listener {
             if (!Objects.requireNonNull(player.getInventory().getItemInMainHand()).getType().equals(ITEM))
                 return;
         } catch (NullPointerException exception) { return; }
+        if (plugin.isNearbyStand(player)) e.setCancelled(true);
         if (!player.hasPermission("railchess.edit"))
             return;
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());

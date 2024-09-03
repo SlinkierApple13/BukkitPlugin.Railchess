@@ -196,4 +196,4 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   
 Note: Map deletions are very dangerous (since it takes a lot of time to create one), and thus
 there is no command to directly delete a map. 
-However, if one does want to delete a map, one may use "/rcedit saveAs" to cover it with an empty map.
+However, if one does want to delete a non-read-only map, one may use "/rcedit saveAs" to cover it with an empty map.

@@ -1,6 +1,7 @@
 package me.momochai.railchess;
 
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -13,10 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
 
 public class Game1Replayer {
 
@@ -27,6 +26,7 @@ public class Game1Replayer {
     List<Player> subscriberList = new ArrayList<>();
     int currentStep;
     int n;
+    public static final double RANGE = 10.0d;
 
     MutablePair<ItemStack, ItemStack> displayTiles(int colour) {
         return switch (colour) {
@@ -91,17 +91,17 @@ public class Game1Replayer {
 
         StationWrapper(@NotNull Station sta) {
             station = sta.clone();
-//          broadcastMessage("Attempting to create StationWrapper at normPos " +
+//          broadcast("Attempting to create StationWrapper at normPos " +
 //                  station.normPos.getLeft() + ", " + station.normPos.getRight());
             mark(NORMAL);
-//          broadcastMessage("Created StationWrapper from station");
+//          broadcast("Created StationWrapper from station");
         }
 
-//        StationWrapper(MutablePair<Double, Double> nPos) {
-//            station = new Station();
-//            station.normPos = nPos;
-//            mark(NORMAL);
-//        }
+//      StationWrapper(MutablePair<Double, Double> nPos) {
+//          station = new Station();
+//          station.normPos = nPos;
+//          mark(NORMAL);
+//      }
 
     }
 
@@ -120,57 +120,71 @@ public class Game1Replayer {
         if (to < 0 || to >= logger.totalMoves)
             return;
         currentStep = to;
+        // broadcast("Current Step: " + currentStep);
         display();
     }
 
     public void display() {
-        stationList.forEach((id, stw) -> stw.mark(getItem(id)));
-        broadcast("Step " + currentStep + " / " + logger.totalMoves);
-        if (logger.getMove(currentStep) == null) return;
-        for (String str: logger.getMove(currentStep).buffer)
-            broadcast(str);
+        try {
+            if (logger.getMove(currentStep) == null) return;
+            broadcast("Step " + currentStep + " / " + logger.totalMoves);
+            for (final String str : logger.getMove(currentStep).buffer)
+                broadcast(str);
+            stationList.forEach((id, stw) -> stw.mark(getItem(id)));
+        } catch (ConcurrentModificationException ignored) {}
     }
 
     @Contract("_ -> new")
-    public final @NotNull ItemStack getItem(int id) {
-        Game1Logger.Move move = logger.getMove(id);
+    public final @NotNull ItemStack getItem(int stationId) {
+        Game1Logger.Move move = logger.getMove(currentStep);
         if (move == null) return new ItemStack(Material.BLACK_CONCRETE);
         for (int i = 0; i < n; ++i) {
-            if (id == move.positions.get(i))
-                return displayTiles(logger.playerColour.get(id)).getRight();
+            if (stationId == move.positions.get(i))
+                return displayTiles(logger.playerColour.get(move.occupier.get(stationId))).getRight();
         }
-        if (move.occupier.get(id) == -1) return StationWrapper.NORMAL;
-        if (move.occupier.get(id) == -2) return StationWrapper.DEAD;
-        return displayTiles(move.occupier.get(id)).getLeft();
+        if (move.occupier.get(stationId) == -1) return StationWrapper.NORMAL;
+        if (move.occupier.get(stationId) == -2) return StationWrapper.DEAD;
+        return displayTiles(logger.playerColour.get(move.occupier.get(stationId))).getLeft();
     }
 
-    public void broadcast(final String str) {
+    public void broadcast(String s) {
+        // Bukkit.getLogger().log(Level.INFO, s);
         for (Player pl: subscriberList)
-            pl.sendMessage(str);
+            if (pl.isValid())
+                pl.sendMessage(s);
+        logger.logMessage(s);
+        for (Player pl: stand.mid().getNearbyPlayers(RANGE))
+            if (!subscriberList.contains(pl))
+                pl.sendMessage(s);
     }
 
-    public void playerJoin(@NotNull Player pl) {
+    public void playerJoin(@NotNull Player pl, boolean info) {
         if (subscriberList.contains(pl) || !plugin.isAvailable(pl, true))
             return;
         subscriberList.add(pl);
         plugin.playerInReplay.put(pl.getName(), this);
-        broadcast(pl.getName() + "joined the replay");
+        if (info) broadcast(pl.getName() + " joined the replay");
     }
 
     public void playerLeave(@NotNull Player pl) {
         if (!subscriberList.contains(pl)) return;
-        broadcast(pl.getName() + "left");
+        broadcast(pl.getName() + " left");
         plugin.playerInReplay.remove(pl.getName());
         subscriberList.remove(pl);
     }
 
-    Game1Replayer(Railchess p, @NotNull RailchessStand s, Railmap m, Game1Logger l) {
+    Game1Replayer(Railchess p, @NotNull RailchessStand s, Railmap m, @NotNull Game1Logger l) {
         plugin = p;
         stand = s;
         map = m;
         logger = l;
         s.replayer = this;
         n = logger.playerColour.size();
+        stand.players.forEach(pl -> {
+            plugin.playerInStand.remove(pl.getName());
+            playerJoin(pl, false);
+        });
+        broadcast("Replaying game " + l.logId);
         map.station.forEach((id, sta) -> stationList.put(id, new StationWrapper(sta)));
         jumpTo(0);
     }

@@ -23,7 +23,7 @@ public class ReplayerCommandHandler implements CommandExecutor {
             if (args[0].equals("join") && plugin.isAvailable(player, true)) {
                 RailchessStand stand = plugin.nearbyStand(player);
                 if (stand == null) return false;
-                stand.replayer.playerJoin(player);
+                stand.replayer.playerJoin(player, true);
                 return true;
             }
             if (args[0].equals("leave") && plugin.playerInReplay.containsKey(player.getName())) {

@@ -44,14 +44,17 @@ public class Game1 {
     boolean available = true;
     boolean showChoices = false;
     boolean log = false;
-    public static final double BROADCAST_RANGE = 15.0d;
+    public static final double BROADCAST_RANGE = 10.0d;
     Game1Logger logger;
+    int maxNameLength = 0;
 
     public class SaveLog extends BukkitRunnable {
 
         @Override
         public void run() {
             logger.save(new File(plugin.logFolder, logger.logId + ".game1"));
+            // plugin.logList.put(logger.logId, logger);
+            plugin.loadLog(logger.logId);
         }
 
         SaveLog() {
@@ -73,13 +76,14 @@ public class Game1 {
         available = false;
         broadcast("Final Result: ");
         for (PlayerWrapper pl: playerList)
-            broadcast(pl.displayName + " -- " + pl.score);
+            broadcast(String.format("%" + (maxNameLength + 4) + "s", pl.displayName) + " -" +
+                    String.format("%" + 5 + "s", pl.score));
         close();
     }
 
     public void advance() {
         if (!available) return;
-        logger.advance(this);
+        logger.advance(this, false);
         if (remainingPlayers <= 1) end();
         if (getCurrent().step != 0 && !getCurrent().dead) getCurrent().getNextStep();
         do {
@@ -115,6 +119,7 @@ public class Game1 {
         Player player;
         int score;
         int maxScore;
+        int prevScore = -1;
         ItemStack tile;
         ItemStack tile2;
         int position; // # of the station the player is at in map
@@ -306,7 +311,7 @@ public class Game1 {
         if (mat.equals(Material.WHITE_CONCRETE))
             return Material.LIGHT_GRAY_CONCRETE;
         if (mat.equals(Material.AIR))
-            return Material.WHITE_STAINED_GLASS;
+            return Material.LIGHT_GRAY_STAINED_GLASS;
         return Material.BLACK_CONCRETE;
     }
 
@@ -314,9 +319,10 @@ public class Game1 {
         for (StationWrapper stw: stationList.values())
             stw.close();
         subscriber.clear();
-        new SaveLog();
         for (PlayerWrapper plw: playerList)
             plw.quit(false, "", false);
+        logger.advance(this, true);
+        new SaveLog();
         stand.game = null;
     }
 
@@ -526,7 +532,14 @@ public class Game1 {
             if (!available) return;
         }
         for (int i = 0; i < n; ++i) {
-            broadcast(playerList.get(i).displayName + " -- " + playerList.get(i).score + " / " + playerList.get(i).maxScore);
+            String tail = ChatColor.COLOR_CHAR + "6" + ChatColor.COLOR_CHAR + "r";
+            if (!(playerList.get(i).prevScore == -1 || playerList.get(i).prevScore == playerList.get(i).score))
+                tail = ChatColor.COLOR_CHAR + "6+" + (playerList.get(i).score - playerList.get(i).prevScore) + ChatColor.COLOR_CHAR + "r";
+            broadcast(String.format("%" + (maxNameLength + 4) + "s", playerList.get(i).displayName) + " -" +
+                    String.format("%" + 5 + "s", playerList.get(i).score) + " /" + ChatColor.COLOR_CHAR + "7" +
+                    String.format("%" + 5 + "s", playerList.get(i).maxScore) + ChatColor.COLOR_CHAR + "r" +
+                    String.format("%" + 10 + "s", tail));
+            playerList.get(i).prevScore = playerList.get(i).score;
         }
     }
 
@@ -624,6 +637,7 @@ public class Game1 {
                 p.add(pl);
                 plugin.playerInGame.put(pl.getName(), this);
             }
+            if (maxNameLength < pl.getName().length()) maxNameLength = pl.getName().length();
         }
         assert p.size() <= 4;
         n = p.size();

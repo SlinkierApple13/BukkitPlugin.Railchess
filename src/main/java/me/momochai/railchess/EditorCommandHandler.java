@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.util.logging.Level;
 
 public class EditorCommandHandler implements CommandExecutor {
 
@@ -146,7 +147,7 @@ public class EditorCommandHandler implements CommandExecutor {
             }
         } catch (Exception e) {
             if (e instanceof IllegalArgumentException)
-                System.out.println(e.getMessage());
+                Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
         return true;

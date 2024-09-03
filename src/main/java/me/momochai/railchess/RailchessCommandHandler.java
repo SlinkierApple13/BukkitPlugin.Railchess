@@ -103,6 +103,16 @@ public class RailchessCommandHandler implements CommandExecutor {
                 if (!player.hasPermission("railchess.edit"))
                     return false;
                 plugin.playerInStand.get(player.getName()).playerForceJoin(player);
+            } else if (args[0].equals("replay")) {
+                long logId = Long.parseLong(args[1]);
+                if (plugin.logList.containsKey(logId)) {
+                    Game1Logger log = plugin.logList.get(logId);
+                    if (plugin.railmap.containsKey(log.mapId)) {
+                        plugin.playerInStand.get(player.getName()).newReplayer(log.mapId, logId);
+                        return true;
+                    }
+                }
+                return false;
             } else {
                 return false;
             }

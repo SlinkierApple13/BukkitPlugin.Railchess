@@ -3,8 +3,10 @@ package me.momochai.railchess;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Level;
 
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 public class Railmap {
@@ -26,10 +28,10 @@ public class Railmap {
 
     public boolean load(@NotNull File file) {
         try {
-            //  System.out.println("Loading " + file.getName());
+            // Bukkit.getLogger().log(Level.INFO, "Loading " + file.getName());
             exceptionLoad(file);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+           Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
         return true;
@@ -58,7 +60,7 @@ public class Railmap {
         int sts = scanner.nextInt();
         for (int i = 0; i < sts; ++i) {
             int id = scanner.nextInt();
-            // System.out.println("Loading railmap " + name + ": station " + id);
+            //Bukkit.getLogger().log(Level.INFO, "Loading railmap " + name + ": station " + id);
             int value = scanner.nextInt();
             double x = scanner.nextDouble();
             double y = scanner.nextDouble();
@@ -81,7 +83,7 @@ public class Railmap {
                 sta.forbid.add(new ForbidTrain(from, line, to));
             }
             station.put(id, sta);
-            // System.out.println("Loaded railmap " + name + ": station " + id);
+            //Bukkit.getLogger().log(Level.INFO, "Loaded railmap " + name + ": station " + id);
         }
         int sps = scanner.nextInt();
         for (int i = 0; i < sps; ++i)
@@ -98,7 +100,7 @@ public class Railmap {
             int b = scanner.nextInt();
             spawnRepellence.add(MutablePair.of(a, b));
         }
-        System.out.println("Successfully loaded " + file.getName());
+       Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + file.getName());
         valid = true;
         scanner.close();
         station.forEach((id, sta) -> {
@@ -142,10 +144,10 @@ public class Railmap {
             for (MutablePair<Integer, Integer> p : spawnRepellence)
                 writer.println(p.getLeft() + " " + p.getRight());
             writer.close();
-            System.out.println("Successfully saved " + file.getName());
+           Bukkit.getLogger().log(Level.INFO, "Successfully saved " + file.getName());
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+           Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
     }

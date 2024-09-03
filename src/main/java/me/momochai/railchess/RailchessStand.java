@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Level;
 
 public class RailchessStand {
 
@@ -22,7 +23,7 @@ public class RailchessStand {
     double sizeH;
     double sizeV;
     List<Player> players = new ArrayList<>();
-    public static final double RANGE = 8.0;
+    public static final double RANGE = 10.0d;
     MapEditor editor = null;
     Game1 game = null;
     Game1Replayer replayer = null;
@@ -64,7 +65,7 @@ public class RailchessStand {
             Scanner scanner = new Scanner(file, StandardCharsets.US_ASCII);
             int version = scanner.nextInt();
             if (version != 0) {
-                System.out.println(fileName + " failed to load: version = " + version);
+                Bukkit.getLogger().log(Level.INFO, fileName + " failed to load: version = " + version);
                 scanner.close();
                 return;
             }
@@ -80,7 +81,7 @@ public class RailchessStand {
             sizeH = scanner.nextDouble();
             sizeV = scanner.nextDouble();
             scanner.close();
-            System.out.println("Successfully loaded " + fileName);
+            Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + fileName);
             valid = true;
         } catch (Exception ignored) {}
     }
@@ -119,7 +120,7 @@ public class RailchessStand {
             writer.println(sizeH);
             writer.println(sizeV);
             writer.close();
-            System.out.println("Successfully saved " + fileName);
+            Bukkit.getLogger().log(Level.INFO, "Successfully saved " + fileName);
         } catch (Exception ignored) {}
     }
 
@@ -169,15 +170,15 @@ public class RailchessStand {
         return occupied();
     }
 
-    public boolean newReplayer(String mapName, long replayId) {
+    public boolean newReplayer(long mapId, long replayId) {
         if (occupied()) return false;
-        if (!plugin.railmapDict.containsKey(mapName) || !plugin.logList.containsKey(replayId))
+        if (!plugin.railmap.containsKey(mapId) || !plugin.logList.containsKey(replayId))
             return false;
-        Railmap m = plugin.getMap(mapName);
+        Railmap m = plugin.railmap.get(mapId);
         Game1Logger log = plugin.logList.get(replayId);
         new Game1Replayer(plugin, this, m, log);
-        for (Player pl: players)
-            plugin.playerInStand.remove(pl.getName());
+//      for (Player pl: players)
+//          plugin.playerInStand.remove(pl.getName());
         players = new ArrayList<>();
         return occupied();
     }

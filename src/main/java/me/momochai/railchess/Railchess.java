@@ -1,5 +1,6 @@
 package me.momochai.railchess;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.logging.Level;
 
 public final class Railchess extends JavaPlugin {
 
@@ -34,6 +36,12 @@ public final class Railchess extends JavaPlugin {
         for (RailchessStand rcs: stand)
             if (rcs.isNearBy(player)) return rcs;
         return null;
+    }
+
+    public boolean isNearbyStand(@NotNull Player player) {
+        for (RailchessStand rcs: stand)
+            if (rcs.isNearBy(player)) return true;
+        return false;
     }
 
     public void leaveAll(@NotNull Player pl) {
@@ -80,6 +88,8 @@ public final class Railchess extends JavaPlugin {
                st.editor.close();
            if (st.game != null)
                st.game.close();
+           if (st.replayer != null)
+               st.replayer.close();
         });
     }
 
@@ -92,7 +102,7 @@ public final class Railchess extends JavaPlugin {
                 if (rmp.valid) addMap(rmp);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
         return true;
@@ -107,7 +117,7 @@ public final class Railchess extends JavaPlugin {
                 if (log.valid) logList.put(log.logId, log);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
         return true;
@@ -122,7 +132,20 @@ public final class Railchess extends JavaPlugin {
                 if (rcs.valid) stand.add(rcs);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean loadLog(long logId) {
+        logFolder.mkdirs();
+        try {
+            File f = new File(logFolder, logId + ".game1");
+            Game1Logger log = new Game1Logger(f);
+            if (log.valid) logList.put(log.logId, log);
+        } catch (Exception e) {
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
         return true;

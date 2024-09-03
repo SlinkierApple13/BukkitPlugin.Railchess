@@ -1,5 +1,7 @@
 package me.momochai.railchess;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +12,7 @@ import java.io.PrintWriter;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 
 public class Game1Logger {
 
@@ -42,7 +45,7 @@ public class Game1Logger {
             buf.append("\n");
             deads.forEach(a -> buf.append(a).append(" "));
             buf.append("\n").append(current).append("\n").append(buffer.size()).append("\n");
-            buffer.forEach(str -> buf.append(str).append("\n"));
+            buffer.forEach(str -> buf.append(str.replaceAll(String.valueOf(ChatColor.COLOR_CHAR), "&")).append("\n"));
             return buf.toString();
         }
 
@@ -90,7 +93,7 @@ public class Game1Logger {
             writer.close();
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
     }
@@ -104,14 +107,18 @@ public class Game1Logger {
                 return false;
             }
             logId = scanner.nextLong();
+            // Bukkit.getLogger().log(Level.INFO, "logId = " + logId);
             mapId = scanner.nextLong();
+            // Bukkit.getLogger().log(Level.INFO, "mapId = " + mapId);
             scanner.nextLine();
             time = ZonedDateTime.parse(scanner.nextLine(), DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            // Bukkit.getLogger().log(Level.INFO, "Log time loaded successfully: " + time.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
             int playerCount = scanner.nextInt();
             for (int i = 0; i < playerCount; ++i)
                 playerColour.add(scanner.nextInt());
             totalMoves = scanner.nextInt();
             for (int i = 0; i < totalMoves; ++i) {
+                // Bukkit.getLogger().log(Level.INFO, "Loading move " + i);
                 Move move = new Move();
                 int stationCount = scanner.nextInt();
                 for (int j = 0; j < stationCount; ++j) {
@@ -128,16 +135,16 @@ public class Game1Logger {
                 int bufferCount = scanner.nextInt();
                 scanner.nextLine();
                 for (int j = 0; j < bufferCount; ++j)
-                    move.buffer.add(scanner.nextLine());
+                    move.buffer.add(scanner.nextLine().replaceAll("&", String.valueOf(ChatColor.COLOR_CHAR)));
                 if (i > 0)
                     move.add(moves.get(i - 1));
                 moves.add(move);
             }
-            System.out.println("Successfully loaded " + logId + ".game1");
+            Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + logId + ".game1");
             scanner.close();
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
     }
@@ -147,7 +154,7 @@ public class Game1Logger {
         moves.get(totalMoves - 1).buffer.add(str);
     }
 
-    public void advance(final Game1 game) {
+    public void advance(final Game1 game, boolean isFinal) {
         if (totalMoves > 0 && game != null) {
             Move move = moves.get(totalMoves - 1);
             move.current = game.currentPlayer;
@@ -157,10 +164,12 @@ public class Game1Logger {
                 else move.occupier.put(id.intValue(), -1);
             });
             for (Game1.PlayerWrapper plw: game.playerList) {
+                // Bukkit.getLogger().log(Level.INFO, "Saving move " + totalMoves + ": " + plw.displayName);
                 move.positions.add(plw.position);
                 move.deads.add(plw.dead);
             }
         }
+        if (isFinal) return;
         moves.add(new Move());
         ++totalMoves;
     }
@@ -176,7 +185,7 @@ public class Game1Logger {
         logId = System.currentTimeMillis();
         mapId = mId;
         valid = true;
-        advance(null);
+        advance(null, false);
     }
 
     Game1Logger(File file) {
