@@ -1,7 +1,6 @@
 package me.momochai.railchess;
 
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -15,7 +14,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
-import java.util.logging.Level;
 
 public class Game1Replayer {
 
@@ -47,6 +45,7 @@ public class Game1Replayer {
         ArrayList<Player> pls = new ArrayList<>(subscriberList);
         pls.forEach(this::playerLeave);
         stationList.forEach((id, st) -> st.close());
+        stand.replayer = null;
     }
 
     public class StationWrapper {

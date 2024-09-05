@@ -180,7 +180,7 @@ public class Game1Logger {
         return moves.get(id);
     }
 
-    Game1Logger(final @NotNull List<Player> players, long mId) {
+    Game1Logger(long mId) {
         time = ZonedDateTime.now();
         logId = System.currentTimeMillis();
         mapId = mId;

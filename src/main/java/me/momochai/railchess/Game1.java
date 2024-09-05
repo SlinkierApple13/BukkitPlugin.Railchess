@@ -165,7 +165,7 @@ public class Game1 {
             }
             if (remainingPlayers <= 1 && triggerEnd)
                 end();
-            else if (getCurrent().equals(this))
+            else if (getCurrent().equals(this) && triggerEnd)
                 advance();
         }
 
@@ -316,13 +316,13 @@ public class Game1 {
     }
 
     public void close() {
+        logger.advance(this, true);
+        new SaveLog();
         for (StationWrapper stw: stationList.values())
             stw.close();
         subscriber.clear();
         for (PlayerWrapper plw: playerList)
             plw.quit(false, "", false);
-        logger.advance(this, true);
-        new SaveLog();
         stand.game = null;
     }
 
@@ -648,7 +648,7 @@ public class Game1 {
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(4)));
         if (log) {
-            logger = new Game1Logger(p, playMap.mapId);
+            logger = new Game1Logger(playMap.mapId);
             for (int i = 0; i < n; ++i)
                 logger.playerColour.add(getColour(tileList.get(i).getLeft()));
         }
