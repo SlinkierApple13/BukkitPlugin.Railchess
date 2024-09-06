@@ -55,7 +55,7 @@ public class RailchessListener implements Listener {
             e.setCancelled(true);
         } else if (plugin.playerInReplay.containsKey(e.getPlayer().getName())) {
             Game1Replayer replayer = plugin.playerInReplay.get(e.getPlayer().getName());
-            replayer.advance(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) ? 1 : -1);
+            replayer.advance(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR) ? 1 : -1);
             e.setCancelled(true);
         }
     }
