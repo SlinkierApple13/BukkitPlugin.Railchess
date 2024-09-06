@@ -51,7 +51,7 @@ public final class Railchess extends JavaPlugin {
         if (playerInGame.containsKey(pl.getName())) {
             playerInGame.get(pl.getName()).subscriber.remove(pl);
             while (playerInGame.get(pl.getName()).getPlayerWrapper(pl) != null)
-                playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true);
+                playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true, false);
         }
         if (playerSubGame.containsKey(pl.getName())) {
             playerSubGame.get(pl.getName()).desubscribe(pl);
