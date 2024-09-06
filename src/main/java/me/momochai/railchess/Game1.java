@@ -98,7 +98,7 @@ public class Game1 {
             ++getCurrent().hurt;
             broadcast(getCurrent().displayName + " gets stuck (" + getCurrent().hurt + ")");
             if (getCurrent().hurt == maxHurt)
-                getCurrent().quit(true, "gets stuck too many times", true);
+                getCurrent().quit(true, "gets stuck too many times", true, true);
             else advance();
         }
     }
@@ -142,11 +142,13 @@ public class Game1 {
             broadcast(displayName + "'s turn: " + step + (step == 1 ? " step" : " steps"));
         }
 
-        public void quit(boolean hasReason, String reason, boolean triggerEnd) {
-            if (!hasReason)
-                broadcast(displayName + " left");
-            else
-                broadcast(displayName + " left: " + reason);
+        public void quit(boolean hasReason, String reason, boolean triggerEnd, boolean showMessage) {
+            if (showMessage) {
+                if (!hasReason)
+                    broadcast(displayName + " left");
+                else
+                    broadcast(displayName + " left: " + reason);
+            }
             dead = true;
             boolean alive = false;
             for (PlayerWrapper plw: playerList)
@@ -322,7 +324,7 @@ public class Game1 {
             stw.close();
         subscriber.clear();
         for (PlayerWrapper plw: playerList)
-            plw.quit(false, "", false);
+            plw.quit(false, "", false, false);
         stand.game = null;
     }
 
@@ -528,7 +530,7 @@ public class Game1 {
             stationList.get(plw.position).mark(plw.tile2);
             if (plw.dead) continue;
             if (plw.maxScore == plw.score)
-                plw.quit(true, "no more points to gain", true);
+                plw.quit(true, "no more points to gain", true, true);
             if (!available) return;
         }
         for (int i = 0; i < n; ++i) {
@@ -647,12 +649,12 @@ public class Game1 {
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "dPink", displayTiles(2)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(4)));
+        Collections.shuffle(tileList);
         if (log) {
             logger = new Game1Logger(playMap.mapId);
             for (int i = 0; i < n; ++i)
                 logger.playerColour.add(getColour(tileList.get(i).getLeft()));
         }
-        Collections.shuffle(tileList);
         spawn.addAll(playMap.spawn);
         playMap.station.forEach((Integer id, Station sta) -> {
 //          broadcast("Loading station " + id);

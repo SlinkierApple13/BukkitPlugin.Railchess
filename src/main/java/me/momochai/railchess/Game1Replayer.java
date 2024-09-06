@@ -151,7 +151,6 @@ public class Game1Replayer {
         for (Player pl: subscriberList)
             if (pl.isValid())
                 pl.sendMessage(s);
-        logger.logMessage(s);
         for (Player pl: stand.mid().getNearbyPlayers(RANGE))
             if (!subscriberList.contains(pl))
                 pl.sendMessage(s);
