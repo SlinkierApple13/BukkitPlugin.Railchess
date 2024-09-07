@@ -75,40 +75,40 @@ By default, every possible path of train exists, e.g., if one connects stations 
 then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. One may block certain train paths through commands.
 
 ### Commands
-**/rc**: The plugin's main command.
+**/rcstand**: The plugin's main command.
 
-* **/rc create \<horizontalDirectionX\> \<horizontalDirectionZ\> \<width\> \<height\>**\
+* **/rcstand create \<horizontalDirectionX\> \<horizontalDirectionZ\> \<width\> \<height\>**\
   Requires permission: railchess.edit.\
   Creates a RailchessStand at current location, with the given direction, width, and height. 
-  For example, if the player stands at $(0, 60, 0)$ and runs\
-  /rc create 1 0 15 12\
+  For example, if the player at $(0, 60, 0)$ runs\
+  "/rcstand create 1 0 15 12",\
   a RailchessStand will be created with the four corners $(0, 60, 0)$, $(15, 60, 0)$, $(15, 72, 0)$, and $(0, 72, 0)$.
-* **/rc list**\
+* **/rcstand list**\
   Requires permission: None.\
   Lists all RailchessStands on the server.
-* **/rc join**\
+* **/rcstand join**\
   Requires permission: railchess.play.\
   Joins the nearest RailchessStand within $8$ blocks. 
   The command fails if no RailchessStands are found, or if the RailchessStand already contains $4$ players.
-* **/rc leave**\
+* **/rcstand leave**\
   Requires permission: railchess.play.\
   Leaves the current RailchessStand.
-* **/rc duplicate**\
+* **/rcstand duplicate**\
   Requires permission: railchess.edit.\
   Joins the current RailchessStand once more.
-* **/rc edit \<mapName\>**\
+* **/rcstand edit \<mapName\>**\
   Requires permission: railchess.edit.\
   Edits the specified map.
   If the map does not exist, a new map with the given name is created.
-* **/rc play|game \<mapName\> \<maxN\> \<maxStucks\> \<hint: true|false\>**\
+* **/rcstand play|game \<mapName\> \<maxN\> \<maxStucks\> \<hint: true|false\>**\
   Requires permission: railchess.play.\
   Starts a game with all players in the current RailchessStand with permission railchess.play, with the specified map, 
   the given cap of the random number $n$, and the number of stucks for a player to be permanently skipped.
   If the final parameter is true, all possible options will be highlighted on a player's turn to move.
-* **/rc replay \<gameId\>**\
+* **/rcstand replay \<gameId\>**\
   Requires permission: railchess.subscribe.\
   Starts replaying the game with the given id.
-* **/rc remove \<standName\>**\
+* **/rcstand remove \<standName\>**\
   Requires permission: railchess.edit.\
   Removes the RailchessStand with the given name.
 

@@ -168,7 +168,7 @@ public final class Railchess extends JavaPlugin {
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(new RailchessListener(this), this);
-        Objects.requireNonNull(getCommand("rc")).setExecutor(new RailchessCommandHandler(this));
+        Objects.requireNonNull(getCommand("rcstand")).setExecutor(new RailchessCommandHandler(this));
         Objects.requireNonNull(getCommand("rcedit")).setExecutor(new EditorCommandHandler(this));
         Objects.requireNonNull(getCommand("rcgame")).setExecutor(new GameCommandHandler(this));
         Objects.requireNonNull(getCommand("rcmap")).setExecutor(new MapCommandHandler(this));

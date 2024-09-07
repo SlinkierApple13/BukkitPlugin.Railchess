@@ -4,7 +4,7 @@ main: me.momochai.railchess.Railchess
 api-version: '1.20'
 load: POSTWORLD
 commands:
-  rc:
+  rcstand:
     permission: railchess.play
   rcedit:
     permission: railchess.edit
