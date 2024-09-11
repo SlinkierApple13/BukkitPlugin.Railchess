@@ -99,6 +99,8 @@ public class EditorCommandHandler implements CommandExecutor {
                 }
             } else if (args[0].equals("line") || args[0].equals("selectline")) {
                 editor.selectLine(Integer.parseInt(args[1]));
+            } else if (args[0].equals("thoroughfare")) {
+                editor.selectThoroughfare();
             } else if (args[0].equals("remove")) {
                 if (args[1].equals("spawnRepellence") || args[1].equals("nospawn")) {
                     editor.spawnRepellence.remove(MutablePair.of(editor.previousStation, editor.currentStation));

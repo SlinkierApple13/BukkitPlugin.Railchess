@@ -13,6 +13,7 @@ By claiming a station, a player gains points equal to the station's value.
 ### Movement
 On a player's turn, the player gets a random number $n$ (from $1$ to some pre-specified value, e.g., $12$).
 Then, the player takes at most two trains, and get off at the $n$-th station. The player claims that station subsequently.
+Before the move, the player is allowed to move to another station through a thoroughfare (if there is any).
 
 The player's path should not involve duplicate segments ($A\to B\to A$ or $A\to B\to C\to\cdots\to A\to B$); 
 neither should it involve stations claimed by other players previously. 
@@ -175,13 +176,17 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Requires permission: railchess.edit.\
   Sets the current map to read-only (so that games can be recorded and replayed).
 * **/rcedit line <lineNumber>**\
+  Requires permission: railchess.edit.\
   Sets the current line number.
+* **/rcedit thoroughfare**\
+  Requires permission: railchess.edit.\
+  Switch to thoroughfare editing mode (instead of editing railway transit lines).
 * **/rcedit connect \<connectType\>**\
   Requires permission: railchess.edit.\
-  If connectType is $0$: removes all connections between the current selected station and the previous selected station.\
-  If connectType is $1$: connects the current selected station with the previous selected station with the current line
+  If connectType is $0$: removes all connections and thoroughfares between the current selected station and the previous selected station.\
+  If connectType is $1$: connects the current selected station with the previous selected station with the current line (or with a thoroughfare, if thoroughfares are selected)
   in only one direction (from previous to current).\
-  If connectType is $2$: connects the current selected station with the previous selected station with the current line in both directions 
+  If connectType is $2$: connects the current selected station with the previous selected station with the current line (or with a thoroughfare, if thoroughfares are selected) in both directions 
   (same as right-clicking while sneaking with a blaze_rod in the main hand).
 * **/rcedit add|remove notransfer \<line1\> \<line2\>**\
   Requires permission: railchess.edit.\

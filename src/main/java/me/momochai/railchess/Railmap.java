@@ -19,6 +19,7 @@ public class Railmap {
     boolean valid = false;
     long mapId;
     boolean readOnly = false;
+    public static int THOROUGHFARE = 2147483647;
 
     Railmap() {}
 

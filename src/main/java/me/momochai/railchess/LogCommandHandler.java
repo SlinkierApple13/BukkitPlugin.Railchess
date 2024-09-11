@@ -3,7 +3,8 @@ package me.momochai.railchess;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class LogCommandHandler implements CommandExecutor {
 
@@ -16,10 +17,11 @@ public class LogCommandHandler implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args[0].equals("list")) {
-            plugin.logList.forEach((id, log) -> {
-               String str = log.brief(plugin);
-               if (str != null) sender.sendMessage(str);
-            });
+            ArrayList<Game1Logger> logs = new ArrayList<>();
+            plugin.logList.forEach((id, log) -> logs.add(log));
+            logs.sort(null);
+            for (Game1Logger l: logs)
+                sender.sendMessage(l.brief(plugin));
             return true;
         }
         return false;

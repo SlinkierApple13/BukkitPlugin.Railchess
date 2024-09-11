@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 
-public class Game1Logger {
+public class Game1Logger implements Comparable {
 
     ZonedDateTime time;
     long logId;
@@ -26,6 +26,14 @@ public class Game1Logger {
     public String brief(@NotNull Railchess plugin) {
         if (!plugin.railmap.containsKey(mapId)) return null;
         return ("Log " + logId + ": Map " + plugin.railmap.get(mapId).name + ", " + totalMoves + " steps, " + time.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+    }
+
+    @Override
+    public int compareTo(@NotNull Object o) {
+        if (Objects.equals(this, o)) return 0;
+        assert o instanceof Game1Logger;
+        Game1Logger l = (Game1Logger) o;
+        return (l.logId < this.logId) ? -1 : 1;
     }
 
     public class Move {

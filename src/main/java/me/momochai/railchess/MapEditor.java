@@ -200,6 +200,16 @@ public class MapEditor {
             stw.autoMark();
     }
 
+    public void selectThoroughfare() {
+        if (activeLine == Railmap.THOROUGHFARE) return;
+        broadcastMessage("Selected inter-station thoroughfares");
+        activeLine = Railmap.THOROUGHFARE;
+        currentStation = -1;
+        previousStation = -1;
+        for (StationWrapper stw: stationList.values())
+            stw.autoMark();
+    }
+
     public void connect(int from, int to, int line) {
         if (line < 0 || checkReadOnly()) return;
         if (stationList.containsKey(from) && stationList.containsKey(to) && from != to)

@@ -197,6 +197,10 @@ public class Game1 {
         public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
         public static final ItemStack NORMAL = new ItemStack(Material.AIR);
 
+        public boolean allows(int pl) {
+            return !occupied || occupiedBy == pl;
+        }
+
         public void update() {
             if (dead)
                 return;
@@ -391,10 +395,18 @@ public class Game1 {
     private class Task {
         int player;
         int station;
+        boolean fromThoroughfare;
 
         Task(int pl, int st) {
             player = pl;
             station = st;
+            fromThoroughfare = false;
+        }
+
+        Task(int pl, int st, boolean th) {
+            player = pl;
+            station = st;
+            fromThoroughfare = th;
         }
 
     }
@@ -428,7 +440,7 @@ public class Game1 {
                 continue;
             if (stationList.get(nb.getRight()).occupied && stationList.get(nb.getRight()).occupiedBy != pl)
                 continue;
-            if (nb.getRight() == prev)
+            if (nb.getRight() == prev || nb.getLeft() == Railmap.THOROUGHFARE)
                 continue;
             if (visited.contains(MutablePair.of(pos, nb.getRight())) || visited.contains(MutablePair.of(nb.getRight(), pos)))
                 continue;
@@ -448,6 +460,11 @@ public class Game1 {
     public List<Integer> choices(int pl, int steps, int interchanges, boolean showAvail) {
         List<Integer> res = new ArrayList<>();
         choices0(pl, playerList.get(pl).position, -1, steps, -1, interchanges, res, new ArrayList<>());
+        Station sta = stationList.get(playerList.get(pl).position).station;
+        for (MutablePair<Integer, Integer> p: sta.neighbour) {
+            if (p.getLeft() == Railmap.THOROUGHFARE && stationList.get(p.getRight()).allows(pl))
+                choices0(pl, p.getRight(), -1, steps, -1, interchanges, res, new ArrayList<>());
+        }
         if (showAvail) res.forEach(i -> {
             try {
                 Material mat;
@@ -457,7 +474,7 @@ public class Game1 {
                     mat = darkened(tileList.get(pl).getRight().getLeft().getType());
                 else mat = darkened(StationWrapper.NORMAL.getType());
                 stationList.get(i).mark(new ItemStack(mat));
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         });
         return res;
     }
@@ -491,6 +508,7 @@ public class Game1 {
     public void update() {
         // broadcast("Updating...");
         Queue<Task> taskQueue = new LinkedList<>();
+        Set<MutablePair<Integer, Integer>> visitedFromThoroughfareOnly = new HashSet<>(); // (player, station)
         for (int i = 0; i < n; ++i) {
             playerList.get(i).maxScore = 0;
             if (playerList.get(i).dead) continue;
@@ -512,12 +530,18 @@ public class Game1 {
                 Task fr = taskQueue.poll();
                 for (MutablePair<Integer, Integer> i: stationList.get(fr.station).station.neighbour) {
                     if (!stationList.containsKey(i.getRight())) continue;
+                    if (fr.fromThoroughfare && i.getLeft() == Railmap.THOROUGHFARE) continue;
                     StationWrapper nb = stationList.get(i.getRight());
-                    if (nb.isReachable(fr.player) || (nb.occupied && nb.occupiedBy != fr.player))
+                    if ((nb.isReachable(fr.player) && !visitedFromThoroughfareOnly.contains(MutablePair.of(fr.player, i.getRight())))
+                            || (nb.occupied && nb.occupiedBy != fr.player))
                         continue;
+                    if (!nb.isReachable(fr.player) && i.getLeft() == Railmap.THOROUGHFARE)
+                        visitedFromThoroughfareOnly.add(MutablePair.of(fr.player, i.getRight()));
+                    if (nb.isReachable(fr.player) && i.getLeft() != Railmap.THOROUGHFARE)
+                        visitedFromThoroughfareOnly.remove(MutablePair.of(fr.player, i.getRight()));
+                    if (!nb.occupied && !nb.isReachable(fr.player)) playerList.get(fr.player).maxScore += nb.station.value;
                     nb.setReachable(fr.player);
-                    if (!nb.occupied) playerList.get(fr.player).maxScore += nb.station.value;
-                    taskQueue.add(new Task(fr.player, i.getRight()));
+                    taskQueue.add(new Task(fr.player, i.getRight(), i.getLeft() == Railmap.THOROUGHFARE));
                 }
             }
         } catch (Exception e) {
