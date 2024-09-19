@@ -83,7 +83,7 @@ public class Game1 {
 
     public void advance() {
         if (!available) return;
-        logger.advance(this, false);
+        if (log) logger.advance(this, false);
         if (remainingPlayers <= 1) end();
         if (getCurrent().step != 0 && !getCurrent().dead) getCurrent().getNextStep();
         do {
@@ -107,7 +107,7 @@ public class Game1 {
         for (Player pl: subscriber)
             if (pl.isValid())
                 pl.sendMessage(s);
-        logger.logMessage(s);
+        if (log) logger.logMessage(s);
         if (!available) return;
         for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
             if (!subscriber.contains(pl))
@@ -322,8 +322,10 @@ public class Game1 {
     }
 
     public void close() {
-        logger.advance(this, true);
-        new SaveLog();
+        if (log) {
+            logger.advance(this, true);
+            new SaveLog();
+        }
         for (StationWrapper stw: stationList.values())
             stw.close();
         subscriber.clear();

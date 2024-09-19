@@ -63,6 +63,7 @@ public class MapEditor {
             broadcastMessage("Opening map " + na);
             loadFrom(Objects.requireNonNull(p.getMap(na)));
         } else mapId = System.currentTimeMillis();
+        name = na;
         selectLine(1);
     }
 
