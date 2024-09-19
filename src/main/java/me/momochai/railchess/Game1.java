@@ -41,7 +41,7 @@ public class Game1 {
     int currentPlayer;
     int maxStep;
     int maxHurt;
-    boolean available = true;
+    boolean available = false;
     boolean showChoices = false;
     boolean log = false;
     public static final double BROADCAST_RANGE = 10.0d;
@@ -380,10 +380,12 @@ public class Game1 {
     }
 
     public boolean play(Player pl) {
-        if (!available || !pl.equals(getCurrentPlayer())) return false;
-        int station = getStation(pl);
-        if (station == -1) return false;
-        return move(currentPlayer, station);
+        try {
+            if (!available || !pl.equals(getCurrentPlayer())) return false;
+            int station = getStation(pl);
+            if (station == -1) return false;
+            return move(currentPlayer, station);
+        } catch (Exception ignored) { return false; }
     }
 
     public double dist2(double a, double b, @NotNull MutablePair<Double, Double> nPos) {
@@ -642,6 +644,7 @@ public class Game1 {
     }*/
 
     Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH, boolean sC) {
+        available = false;
         maxHurt = mH;
         showChoices = sC;
         stand = st;
@@ -706,6 +709,7 @@ public class Game1 {
 
         }
         broadcast("Game started: Map " + playMap.name + ", Maximum Steps " + maxStep);
+        available = true;
         update();
         currentPlayer = n - 1;
         advance();
