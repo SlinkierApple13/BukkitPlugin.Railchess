@@ -174,6 +174,7 @@ public final class Railchess extends JavaPlugin {
         Objects.requireNonNull(getCommand("rcmap")).setExecutor(new MapCommandHandler(this));
         Objects.requireNonNull(getCommand("rcreplay")).setExecutor(new ReplayerCommandHandler(this));
         Objects.requireNonNull(getCommand("rclog")).setExecutor(new LogCommandHandler(this));
+        Objects.requireNonNull(getCommand("rcfix")).setExecutor(new RailchessFixer());
         mapFolder = new File(getDataFolder(), "railmap");
         logFolder = new File(getDataFolder(), "log");
         standFolder = new File(getDataFolder(), "stand");

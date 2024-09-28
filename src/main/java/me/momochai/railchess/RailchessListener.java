@@ -2,6 +2,7 @@ package me.momochai.railchess;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,8 +40,7 @@ public class RailchessListener implements Listener {
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());
         if (plugin.playerInGame.containsKey(e.getPlayer().getName())) {
             Game1 g = plugin.playerInGame.get(e.getPlayer().getName());
-            if (g.available && (e.getAction().equals(Action.RIGHT_CLICK_AIR) ||
-                    e.getAction().equals(Action.RIGHT_CLICK_BLOCK))) {
+            if (g.available) {
                 g.play(e.getPlayer());
             }
             e.setCancelled(true);
@@ -97,9 +97,15 @@ public class RailchessListener implements Listener {
                 return;
         } catch (NullPointerException exception) { return; }
         if (plugin.isNearbyStand(player)) e.setCancelled(true);
-        if (!player.hasPermission("railchess.edit"))
-            return;
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());
+        if (plugin.playerInGame.containsKey(player.getName()) && player.hasPermission("railchess.play")) {
+            Game1 g = plugin.playerInGame.get(player.getName());
+            g.play(player);
+            e.setCancelled(true);
+            return;
+        }
+        if (!player.hasPermission("railchess.edit") && !player.hasPermission("railchess.play"))
+            return;
         if (plugin.playerInEditor.containsKey(player.getName())) {
             MapEditor ed = plugin.playerInEditor.get(player.getName());
             if (ed.available) {
@@ -117,14 +123,20 @@ public class RailchessListener implements Listener {
     public void onEntityDamageByEntity(@NotNull EntityDamageByEntityEvent e) {
         Entity remover = e.getDamager();
         if (!(remover instanceof Player)) return;
-        if (!(e.getEntity() instanceof ItemFrame)) return;
+        if (!(e.getEntity() instanceof ItemFrame || e.getEntity() instanceof Interaction)) return;
         Player player = (Player) remover;
         try {
             if (!Objects.requireNonNull(player.getInventory().getItemInMainHand()).getType().equals(ITEM))
                 return;
         } catch (NullPointerException exception) { return; }
         if (plugin.isNearbyStand(player)) e.setCancelled(true);
-        if (!player.hasPermission("railchess.edit"))
+        if (plugin.playerInGame.containsKey(player.getName()) && player.hasPermission("railchess.play")) {
+            Game1 g = plugin.playerInGame.get(player.getName());
+            g.play(player);
+            e.setCancelled(true);
+            return;
+        }
+        if (!player.hasPermission("railchess.edit") && !player.hasPermission("railchess.play"))
             return;
 //      Bukkit.broadcastMessage("Event Detected: " + e.getPlayer().getName());
         if (plugin.playerInEditor.containsKey(player.getName())) {

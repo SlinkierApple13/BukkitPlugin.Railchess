@@ -51,7 +51,8 @@ public class Game1Replayer {
     public class StationWrapper {
 
         Station station;
-        ItemDisplay entity, entity2;
+        ItemDisplay entity;
+        // ItemDisplay entity2;
         public static final ItemStack NORMAL = new ItemStack(Material.AIR);
         public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
 
@@ -65,19 +66,21 @@ public class Game1Replayer {
             }
             entity.setItemStack(item);
             entity.setInvulnerable(true);
-            if (entity2 == null || !entity2.isValid()) {
-                entity2 = (ItemDisplay) stand.location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
-                entity2.setBrightness(new Display.Brightness(15, 0));
-                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
-            }
-            entity2.setItemStack(item);
-            entity2.setInvulnerable(true);
+            entity.addScoreboardTag("railchess");
+//            if (entity2 == null || !entity2.isValid()) {
+//                entity2 = (ItemDisplay) stand.location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
+//                entity2.setBrightness(new Display.Brightness(15, 0));
+//                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
+//                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+//            }
+//            entity2.setItemStack(item);
+//            entity2.setInvulnerable(true);
+//            entity2.addScoreboardTag("railchess");
         }
 
         public void close() {
             entity.remove();
-            entity2.remove();
+            // entity2.remove();
         }
 
         public Location getLocation() {

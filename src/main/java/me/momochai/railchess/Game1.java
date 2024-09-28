@@ -10,10 +10,13 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -192,7 +195,8 @@ public class Game1 {
         boolean occupied;
         boolean dead;
         int occupiedBy;
-        ItemDisplay entity, entity2;
+        ItemDisplay entity;
+        ItemDisplay entity2;
         int reachableBy; // sum of (2^(i)) for all reachable player i
         public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
         public static final ItemStack NORMAL = new ItemStack(Material.AIR);
@@ -229,17 +233,17 @@ public class Game1 {
 
         public void autoMark() {
             if (!occupied) {
-                mark(new ItemStack(NORMAL));
+                mark(new ItemStack(NORMAL), false);
                 return;
             }
             if (dead) {
-                mark(new ItemStack(DEAD));
+                mark(new ItemStack(DEAD), false);
                 return;
             }
-            mark(playerList.get(occupiedBy).tile);
+            mark(playerList.get(occupiedBy).tile, false);
         }
 
-        public void mark(ItemStack item) {
+        public void mark(ItemStack item, boolean bold) {
             if (entity == null || !entity.isValid()) {
                 entity = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
                 entity.setBrightness(new Display.Brightness(15, 0));
@@ -248,6 +252,12 @@ public class Game1 {
             }
             entity.setItemStack(item);
             entity.setInvulnerable(true);
+            entity.addScoreboardTag("railchess");
+            if (!bold) {
+                if (entity2 != null && entity2.isValid())
+                    entity2.remove();
+                return;
+            }
             if (entity2 == null || !entity2.isValid()) {
                 entity2 = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
                 entity2.setBrightness(new Display.Brightness(15, 0));
@@ -256,11 +266,13 @@ public class Game1 {
             }
             entity2.setItemStack(item);
             entity2.setInvulnerable(true);
+            entity2.addScoreboardTag("railchess");
         }
 
         public void close() {
             entity.remove();
-            entity2.remove();
+            if (entity2 != null && entity2.isValid())
+                entity2.remove();
         }
 
         public Location getLocation() {
@@ -477,7 +489,7 @@ public class Game1 {
                 else if (stationList.get(i).occupied)
                     mat = darkened(tileList.get(pl).getRight().getLeft().getType());
                 else mat = darkened(StationWrapper.NORMAL.getType());
-                stationList.get(i).mark(new ItemStack(mat));
+                stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i && stationList.get(i).occupied);
             } catch (Exception ignored) {}
         });
         return res;
@@ -555,7 +567,7 @@ public class Game1 {
         for (StationWrapper stw: stationList.values())
             stw.update();
         for (PlayerWrapper plw: playerList) {
-            stationList.get(plw.position).mark(plw.tile2);
+            stationList.get(plw.position).mark(plw.tile2, false);
             if (plw.dead) continue;
             if (plw.maxScore == plw.score)
                 plw.quit(true, "no more points to gain", true, true);

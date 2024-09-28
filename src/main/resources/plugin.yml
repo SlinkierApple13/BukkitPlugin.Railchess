@@ -16,7 +16,16 @@ commands:
     permission: railchess.subscribe
   rclog:
     permission: railchess.subscribe
+  rcfix:
+    permission: railchess.op
 permissions:
+  railchess.op:
+    description: Permission for ops
+    default: op
+    children:
+      railchess.edit: true
+      railchess.play: true
+      railchess.subscribe: true
   railchess.edit:
     description: Permission for editing maps
     default: op

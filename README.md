@@ -30,6 +30,8 @@ A station is claimed automatically by a player the moment he/she becomes the onl
 * Minecraft version Java 1.20.4
 
 ### Permissions
+* **railchess.op**\
+Default: op. Permission for ops.
 * **railchess.edit**\
 Default: op. Permission for map editing.
 * **railchess.play**\
@@ -49,7 +51,7 @@ they must be added manually, for example, by a map-art generator.
 
 **Gameplay**\
 Players join a RailchessStand (by commands), and a player types a command to start a game.
-At one's turn to move, one right-clicks on one's destination with a blaze_rod in one's main hand.\
+At one's turn to move, one left/right-clicks on one's destination with a blaze_rod in one's main hand.\
 Each player has a specific colour; 
 a player's position and claimed stations will be marked with his/her respective colour.\
 Players can leave the game by typing commands. 
@@ -198,7 +200,15 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Requires permission: railchess.edit.\
   Forbids or allows trains from \<from\> to \<to\> via \<via\> on line \<line\>.\
   Please note that trains from \<to\> to \<from\> via \<via\> are not affected.
-  
+
+**/rcfix**: The command for fixing bugged entities.
+* **/rcfix true**\
+  Requires permission: railchess.op.\
+  Removes all entities summoned by the Railchess plugin within the distance of $16$ blocks.
+* **/rcfix false**\
+  Requires permission: railchess.op.\
+  Removes all item displays in $16$ blocks.
+
 Note: Map deletions are very dangerous (since it takes a lot of time to create one), and thus
 there is no command to directly delete a map. 
 However, if one does want to delete a non-read-only map, one may use "/rcedit saveAs" to cover it with an empty map.
