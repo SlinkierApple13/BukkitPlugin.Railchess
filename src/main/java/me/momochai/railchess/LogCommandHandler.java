@@ -20,6 +20,7 @@ public class LogCommandHandler implements CommandExecutor {
             ArrayList<Game1Logger> logs = new ArrayList<>();
             plugin.logList.forEach((id, log) -> logs.add(log));
             logs.sort(null);
+            Railchess.sendMessage(sender, "已记录 " + logs.size() + " 次对局:");
             for (Game1Logger l: logs)
                 sender.sendMessage(l.brief(plugin));
             return true;

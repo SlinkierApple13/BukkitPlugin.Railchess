@@ -18,19 +18,13 @@ public class RailchessFixer implements CommandExecutor {
             Player player = sender.getServer().getPlayer(sender.getName());
             if (player == null) return false;
             if (!player.hasPermission("railchess.op")) return false;
-            boolean safe = Boolean.parseBoolean(args[0]);
             Location loc = player.getLocation();
             Collection<Entity> itds = loc.getNearbyEntitiesByType(ItemDisplay.class,15.0f);
-            if (!safe) {
-                for (Entity e: itds)
+            for (Entity e: itds) {
+                if (e.getScoreboardTags().contains("railchess"))
                     e.remove();
             }
-            else {
-                for (Entity e: itds) {
-                    if (e.getScoreboardTags().contains("railchess"))
-                        e.remove();
-                }
-            }
+            Railchess.sendMessage(player, "已清除 15m 内的轨交棋展示实体.");
         } catch (Exception e) {
             return false;
         }

@@ -60,9 +60,12 @@ public class MapEditor {
         sizeH = sH;
         sizeV = sV;
         if (p.railmapDict.containsKey(na)) {
-            broadcastMessage("Opening map " + na);
+            broadcastMessage("编辑地图 " + na + ".");
             loadFrom(Objects.requireNonNull(p.getMap(na)));
-        } else mapId = System.currentTimeMillis();
+        } else {
+            mapId = System.currentTimeMillis();
+            broadcastMessage("新建地图 " + na + ".");
+        }
         name = na;
         selectLine(1);
     }
@@ -92,7 +95,7 @@ public class MapEditor {
 
     public void broadcastMessage(String s) {
         for (Player p: editingPlayer)
-            p.sendMessage(s);
+            Railchess.sendMessage(p, s, "6地图编辑");
     }
 
     public void addTrainForbid(int sta, int from, int to, int line) {
@@ -102,7 +105,8 @@ public class MapEditor {
         if (stationList.get(sta).station.forbid.contains(new ForbidTrain(from, line, to)))
             return;
         stationList.get(sta).station.forbid.add(new ForbidTrain(from, line, to));
-        broadcastMessage("Forbid train from " + from + " to " + to + " via " + sta + " on Line " + line);
+        // broadcastMessage("Forbid train from " + from + " to " + to + " via " + sta + " on Line " + line);
+        broadcastMessage("已禁止 " + line + " 号线列车从车站 " + from + " 经车站 " + sta + " 前往车站 " + to + ".");
     }
 
     public void removeTrainForbid(int sta, int from, int to, int line) {
@@ -113,7 +117,7 @@ public class MapEditor {
         if (!stationList.get(sta).station.forbid.contains(new ForbidTrain(from, line, to)))
             return;
         stationList.get(sta).station.forbid.remove(new ForbidTrain(from, line, to));
-        broadcastMessage("Allowed train from " + from + " to " + to + " via " + sta + " on Line " + line);
+        broadcastMessage("已允许 " + line + " 号线列车从车站 " + from + " 经车站 " + sta + " 前往车站 " + to + ".");
     }
 
     //  Right Click without Sneaking: Select station
@@ -173,7 +177,7 @@ public class MapEditor {
     public int newStation(MutablePair<Double, Double> nPos, @NotNull Consumer<StationWrapper> consumer) {
         if (checkReadOnly()) return -1;
         consumer.accept(stationList.put(nextId, new StationWrapper(nPos)));
-        broadcastMessage("Successfully created Station " + nextId);
+        broadcastMessage("已创建车站 " + nextId + ".");
         ++nextId;
         return nextId - 1;
     }
@@ -181,7 +185,7 @@ public class MapEditor {
     public void selectStation(int key) {
         if (!stationList.containsKey(key))
             return;
-        broadcastMessage("Station " + key + " is selected");
+        broadcastMessage("已选中车站 " + key + ".");
         if (stationList.containsKey(previousStation))
             stationList.get(previousStation).autoMark();
         if (stationList.containsKey(currentStation))
@@ -193,7 +197,7 @@ public class MapEditor {
 
     public void selectLine(int line) {
         if (activeLine == line || line <= 0) return;
-        broadcastMessage("Line " + line + " is selected");
+        broadcastMessage("已选中 " + line + " 号线.");
         activeLine = line;
         currentStation = -1;
         previousStation = -1;
@@ -203,7 +207,7 @@ public class MapEditor {
 
     public void selectThoroughfare() {
         if (activeLine == Railmap.THOROUGHFARE) return;
-        broadcastMessage("Selected inter-station thoroughfares");
+        broadcastMessage("已选中换乘通道.");
         activeLine = Railmap.THOROUGHFARE;
         currentStation = -1;
         previousStation = -1;
@@ -211,11 +215,16 @@ public class MapEditor {
             stw.autoMark();
     }
 
+    public String lineName(int li) {
+        return (li == Railmap.THOROUGHFARE) ? "换乘通道" : " " + li + " 号线";
+    }
+
     public void connect(int from, int to, int line) {
         if (line < 0 || checkReadOnly()) return;
         if (stationList.containsKey(from) && stationList.containsKey(to) && from != to)
             if (!stationList.get(from).station.neighbour.contains(MutablePair.of(line, to))) {
-                broadcastMessage("Added connection " + from + " -> " + to + " on Line " + line);
+                // broadcastMessage("Added connection " + from + " -> " + to + " on Line " + line);
+                broadcastMessage("已用" + lineName(line) + "连接车站 " + from + " -> " + to);
                 stationList.get(from).station.neighbour.add(MutablePair.of(line, to));
             }
     }
@@ -238,7 +247,7 @@ public class MapEditor {
         if (!stationList.containsKey(from) || readOnly) return;
         stationList.get(from).station.neighbour.forEach(pair -> {
             if (filter.apply(pair.getLeft(), pair.getRight()))
-                broadcastMessage("Removed connection " + from + " -> " + pair.getRight() + " on Line " + pair.getLeft());
+                broadcastMessage("已断开" + lineName(pair.getLeft()) + "的连接: 车站 " + from + " -> " + pair.getRight() + ".");
         });
         stationList.get(from).station.neighbour.removeIf(nb -> filter.apply(nb.getLeft(), nb.getRight()));
     }
@@ -264,7 +273,7 @@ public class MapEditor {
 
     public void removeStation(int sta) {
         if (checkReadOnly() || !stationList.containsKey(sta)) return;
-        broadcastMessage("Removed Station " + sta);
+        broadcastMessage("已移除车站 " + sta + ".");
         for (MutablePair<Integer, Integer> s: stationList.get(sta).station.neighbour)
             disconnect(s.getRight(), (line, st) -> st == sta);
         if (sta == currentStation)
@@ -281,7 +290,7 @@ public class MapEditor {
             if (value.isOn(line))
                 disconnect(key, (Integer li, Integer st) -> (li == line));
         });
-        broadcastMessage("Removed line " + line);
+        broadcastMessage("已移除线路 " + line + ".");
     }
 
     public Railmap toRailmap(boolean autoSet) {
@@ -293,8 +302,9 @@ public class MapEditor {
         String name1 = newName.replaceAll("\\s+", "");
         if (plugin.railmapDict.containsKey(name1)) {
             if (Objects.requireNonNull(plugin.getMap(name1)).readOnly) {
-                broadcastMessage("Map failed to save as " + name1 + ": map " +
-                        name1 + " already exists, and is read-only");
+                // broadcastMessage("Map failed to save as " + name1 + ": map " +
+                //        name1 + " already exists, and is read-only");
+                broadcastMessage("无法将地图另存为 " + name1 + ": 地图 " + name1 + " 已经存在，且为只读.");
                 return null;
             }
         }
@@ -344,7 +354,7 @@ public class MapEditor {
     public void makeReadOnly() {
         if (readOnly) return;
         readOnly = true;
-        broadcastMessage("Set map to read-only");
+        broadcastMessage("已将地图设为只读");
     }
 
     public void refresh() {
@@ -374,7 +384,7 @@ public class MapEditor {
                 entity = (ItemDisplay) location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
                 entity.setBrightness(new Display.Brightness(15, 0));
                 entity.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+                        new Quaternionf(), new Vector3f(Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE), new Quaternionf()));
             }
             entity.setItemStack(item);
             entity.setInvulnerable(true);
@@ -383,7 +393,7 @@ public class MapEditor {
 //                entity2 = (ItemDisplay) location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
 //                entity2.setBrightness(new Display.Brightness(15, 0));
 //                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-//                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+//                        new Quaternionf(), new Vector3f(Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE), new Quaternionf()));
 //            }
 //            entity2.setItemStack(item);
 //            entity2.setInvulnerable(true);

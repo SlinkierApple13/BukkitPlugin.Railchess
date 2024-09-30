@@ -34,9 +34,20 @@ public class RailchessStand {
         for (Player pl: players) {
             if (subscriber.contains(pl))
                 continue;
-            pl.sendMessage(s);
+            Railchess.sendMessage(pl, s);
             subscriber.add(pl);
         }
+    }
+
+    public String name() {
+        return fileName.substring(0, fileName.length() - ".stand".length());
+    }
+
+    public void broadcastPlayers() {
+        String str = "当前队列中玩家: ";
+        for (Player pl: players)
+            str += (pl.getName() + ", ");
+        broadcast(str.substring(0, str.length() - 2));
     }
 
     public boolean occupied() {
@@ -185,10 +196,11 @@ public class RailchessStand {
 
     public boolean playerJoin(Player pl) {
         if (!occupied() && !players.contains(pl) && players.size() < 4) {
-            broadcast(pl.getName() + " joined");
-            pl.sendMessage("Joined stand " + fileName);
+            broadcast(pl.getName() + " 加入了队列.");
+            Railchess.sendMessage(pl, "已加入队列 " + name() + ".");
             players.add(pl);
             plugin.playerInStand.put(pl.getName(), this);
+            broadcastPlayers();
             return true;
         }
         return false;
@@ -196,14 +208,11 @@ public class RailchessStand {
 
     public boolean playerForceJoin(Player pl) {
         if (!occupied() && players.size() < 4) {
-            if (!players.contains(pl)) {
-                broadcast(pl.getName() + " joined");
-                pl.sendMessage("Joined stand " + fileName);
-            } else {
-                broadcast("Duplicated player " + pl.getName());
-            }
+            broadcast(pl.getName() + " 加入了队列.");
+            Railchess.sendMessage(pl, "已加入队列 " + name() + ".");
             players.add(pl);
             plugin.playerInStand.put(pl.getName(), this);
+            broadcastPlayers();
             return true;
         }
         return false;
@@ -212,10 +221,12 @@ public class RailchessStand {
     public boolean playerLeave(Player pl) {
         if (!players.contains(pl))
             return false;
-        broadcast(pl.getName() + " left");
+        Railchess.sendMessage(pl, "已离开当前队列.");
         while (players.contains(pl))
             players.remove(pl);
+        broadcast(pl.getName() + " 离开了队列.");
         plugin.playerInStand.remove(pl.getName());
+        broadcastPlayers();
         return true;
     }
 

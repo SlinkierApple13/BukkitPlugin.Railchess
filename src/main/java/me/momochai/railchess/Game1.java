@@ -1,22 +1,16 @@
 package me.momochai.railchess;
 
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -50,6 +44,7 @@ public class Game1 {
     public static final double BROADCAST_RANGE = 10.0d;
     Game1Logger logger;
     int maxNameLength = 0;
+    public static final float BIG_BUTTON_SIZE = 0.11f;
 
     public class SaveLog extends BukkitRunnable {
 
@@ -77,9 +72,9 @@ public class Game1 {
     public void end() {
         if (!available) return;
         available = false;
-        broadcast("Final Result: ");
+        broadcast("最终结果: ");
         for (PlayerWrapper pl: playerList)
-            broadcast(String.format("%" + (maxNameLength + 4) + "s", pl.displayName) + " -" +
+            plainBroadcast(String.format("%" + (maxNameLength + 4) + "s", pl.displayName) + " -" +
                     String.format("%" + 5 + "s", pl.score));
         close();
     }
@@ -99,9 +94,9 @@ public class Game1 {
         currentChoices = choices(currentPlayer, getCurrent().step, 1, showChoices);
         if (currentChoices.isEmpty()) {
             ++getCurrent().hurt;
-            broadcast(getCurrent().displayName + " gets stuck (" + getCurrent().hurt + ")");
+            broadcast(getCurrent().displayName + " 卡住了 (" + getCurrent().hurt + "/" + (maxHurt - 1) + ")");
             if (getCurrent().hurt == maxHurt)
-                getCurrent().quit(true, "gets stuck too many times", true, true);
+                getCurrent().quit(true, "卡住次数超过上限", true, true);
             else advance();
         }
     }
@@ -110,16 +105,28 @@ public class Game1 {
         for (Player pl: subscriber)
             if (pl.isValid())
                 pl.sendMessage(s);
+        if (log) logger.logMessage(ChatColor.COLOR_CHAR + "6对局回放 > " + ChatColor.COLOR_CHAR + "r" + s);
+        if (!available) return;
+        for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
+            if (!subscriber.contains(pl))
+                Railchess.sendMessage(pl, s);
+    }
+
+    public void plainBroadcast(String s) {
+        for (Player pl: subscriber)
+            if (pl.isValid())
+                pl.sendMessage(s);
         if (log) logger.logMessage(s);
         if (!available) return;
         for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
             if (!subscriber.contains(pl))
-                pl.sendMessage(s);
+                Railchess.sendMessage(pl, s, "");
     }
 
     public class PlayerWrapper {
 
         Player player;
+        String playerName;
         int score;
         int maxScore;
         int prevScore = -1;
@@ -130,11 +137,12 @@ public class Game1 {
         boolean dead;
         int hurt;
         String displayName;
+        // Color glowColour;
 
         public void getNextStep() {
             step = random.nextInt(maxStep) + 1;
             if (showChoices) return;
-            player.sendMessage("Your next move should involve " + step + (step == 1 ? " step" : " steps"));
+            player.sendMessage("你的下一个随机数是 " + step + ".");
         }
 
         public void getStep() {
@@ -142,32 +150,40 @@ public class Game1 {
         }
 
         public void broadcastStep() {
-            broadcast(displayName + "'s turn: " + step + (step == 1 ? " step" : " steps"));
+            broadcast(displayName + "的回合: 随机数是 " + step + ".");
         }
 
         public void quit(boolean hasReason, String reason, boolean triggerEnd, boolean showMessage) {
             if (showMessage) {
                 if (!hasReason)
-                    broadcast(displayName + " left");
+                    broadcast(displayName + " 离开了.");
                 else
-                    broadcast(displayName + " left: " + reason);
+                    broadcast(displayName + " 离开了: " + reason + ".");
             }
+            if (player != null && player.isValid())
+                if (player.getGameMode() != GameMode.CREATIVE &&
+                    player.getGameMode() != GameMode.SPECTATOR)
+                    player.setAllowFlight(false);
             dead = true;
-            boolean alive = false;
+            boolean duplicateAlive = false;
             for (PlayerWrapper plw: playerList)
-                alive |= (!plw.dead && plw.player.equals(player));
-            if (!alive)
-                plugin.playerInGame.remove(player.getName());
+                duplicateAlive |= (!plw.dead && plw.playerName.equals(playerName));
+            if (!duplicateAlive)
+                plugin.playerInGame.remove(playerName);
             if (!triggerEnd) {
-                plugin.playerSubGame.remove(player.getName());
+                plugin.playerSubGame.remove(playerName);
                 subscriber.remove(player);
             }
             --remainingPlayers;
-            if (remainingPlayers == 1) {
-                for (PlayerWrapper plw: playerList)
-                    if (!plw.dead)
-                        plw.score = plw.maxScore;
+            if (triggerEnd) {
+                update();
+                choices(currentPlayer, getCurrent().step, 1, showChoices);
             }
+//            if (remainingPlayers == 1) {
+//                for (PlayerWrapper plw: playerList)
+//                    if (!plw.dead)
+//                        plw.score = plw.maxScore;
+//            }
             if (remainingPlayers <= 1 && triggerEnd)
                 end();
             else if (getCurrent().equals(this) && triggerEnd)
@@ -177,6 +193,7 @@ public class Game1 {
         PlayerWrapper(@NotNull Player pl, @NotNull MutablePair<ItemStack, ItemStack> ti, int pos, String prefix) {
             position = pos;
             player = pl;
+            playerName = pl.getName();
             tile = ti.getLeft();
             tile2 = ti.getRight();
             score = 0;
@@ -185,6 +202,15 @@ public class Game1 {
             dead = false;
             hurt = 0;
             displayName = prefix + pl.getName() + ChatColor.COLOR_CHAR + "r";
+//            try {
+//                char ch = prefix.charAt(1);
+//                glowColour = Color.WHITE;
+//                if (ch == '6') glowColour = Color.ORANGE;
+//                if (ch == 'a') glowColour = Color.LIME;
+//                if (ch == 'b') glowColour = Color.AQUA;
+//                if (ch == 'd') glowColour = Color.FUCHSIA;
+//                if (ch == 'e') glowColour = Color.YELLOW;
+//            } catch (Exception ignored) {}
         }
 
     }
@@ -197,7 +223,9 @@ public class Game1 {
         int occupiedBy;
         ItemDisplay entity;
         ItemDisplay entity2;
+        ItemDisplay glower;
         int reachableBy; // sum of (2^(i)) for all reachable player i
+        boolean cancelMark = false;
         public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
         public static final ItemStack NORMAL = new ItemStack(Material.AIR);
 
@@ -205,8 +233,8 @@ public class Game1 {
             return !occupied || occupiedBy == pl;
         }
 
-        public void update() {
-            if (dead)
+        public void update(boolean isPlayerPos, ItemStack displayStack) {
+            if (dead || (isPlayerPos && displayStack == null))
                 return;
             if (!occupied && (reachableBy == 1 || reachableBy == 2 || reachableBy == 4 ||
                     reachableBy == 8 || reachableBy == 16 || reachableBy == 32)) {
@@ -215,12 +243,20 @@ public class Game1 {
                 for (int i = 1; i <= 16; i *= 2)
                     if (reachableBy > i) ++occupiedBy;
                 playerList.get(occupiedBy).score += station.value;
-                autoMark();
+                if (!isPlayerPos) autoMark();
+                if (isPlayerPos) {
+                    mark(displayStack, false, true);
+                    cancelMark = true;
+                }
                 return;
             }
             if (!occupied && reachableBy == 0)
                 dead = true;
-            autoMark();
+            if (!isPlayerPos) autoMark();
+            if (isPlayerPos) {
+                mark(displayStack, false, true);
+                cancelMark = true;
+            }
         }
 
         public boolean isReachable(int pl) {
@@ -233,23 +269,30 @@ public class Game1 {
 
         public void autoMark() {
             if (!occupied) {
-                mark(new ItemStack(NORMAL), false);
+                mark(new ItemStack(NORMAL), false, false);
                 return;
             }
             if (dead) {
-                mark(new ItemStack(DEAD), false);
+                mark(new ItemStack(DEAD), false, false);
                 return;
             }
-            mark(playerList.get(occupiedBy).tile, false);
+            mark(playerList.get(occupiedBy).tile, false, false);
         }
 
-        public void mark(ItemStack item, boolean bold) {
+        public void mark(ItemStack item, boolean bold, boolean big) {
+//            unglow();
+//            if (glowColour != null) glow(glowColour);
+            if (cancelMark) {
+                cancelMark = false;
+                return;
+            }
+            final float size = big ? BIG_BUTTON_SIZE : Railchess.BUTTON_SIZE;
             if (entity == null || !entity.isValid()) {
                 entity = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
                 entity.setBrightness(new Display.Brightness(15, 0));
-                entity.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
             }
+            entity.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
+                    new Quaternionf(), new Vector3f(size, size, size), new Quaternionf()));
             entity.setItemStack(item);
             entity.setInvulnerable(true);
             entity.addScoreboardTag("railchess");
@@ -261,18 +304,38 @@ public class Game1 {
             if (entity2 == null || !entity2.isValid()) {
                 entity2 = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
                 entity2.setBrightness(new Display.Brightness(15, 0));
-                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
             }
+            entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
+                    new Quaternionf(), new Vector3f(size, size, size), new Quaternionf()));
             entity2.setItemStack(item);
             entity2.setInvulnerable(true);
             entity2.addScoreboardTag("railchess");
         }
 
+//        public void glow(Color colour) {
+//            if (colour == null) return;
+//            if (glower == null || !glower.isValid()) {
+//                glower = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
+//                glower.setBrightness(new Display.Brightness(15, 0));
+//                glower.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
+//                        new Quaternionf(), new Vector3f(BIG_BUTTON_SIZE, BIG_BUTTON_SIZE, BIG_BUTTON_SIZE), new Quaternionf()));
+//            }
+//            glower.setItemStack(new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS));
+//            glower.setGlowColorOverride(colour);
+//            glower.setGlowing(true);
+//        }
+//
+//        public void unglow() {
+//            if (glower == null || !glower.isValid()) return;
+//            glower.setGlowing(false);
+//        }
+
         public void close() {
             entity.remove();
             if (entity2 != null && entity2.isValid())
                 entity2.remove();
+            if (glower != null && glower.isValid())
+                glower.remove();
         }
 
         public Location getLocation() {
@@ -336,19 +399,21 @@ public class Game1 {
     public void close() {
         if (log) {
             logger.advance(this, true);
-            new SaveLog();
+            try {
+                new SaveLog();
+            } catch (Exception ignored) {}
         }
-        for (StationWrapper stw: stationList.values())
-            stw.close();
         subscriber.clear();
         for (PlayerWrapper plw: playerList)
             plw.quit(false, "", false, false);
+        for (StationWrapper stw: stationList.values())
+            stw.close();
         stand.game = null;
     }
 
-    public PlayerWrapper getPlayerWrapper(Player pl) {
+    public PlayerWrapper getPlayerWrapper(String playerName) {
         for (PlayerWrapper plw: playerList) {
-            if (plw.player.equals(pl))
+            if (plw.playerName.equals(playerName))
                 return plw;
         }
         return null;
@@ -489,7 +554,7 @@ public class Game1 {
                 else if (stationList.get(i).occupied)
                     mat = darkened(tileList.get(pl).getRight().getLeft().getType());
                 else mat = darkened(StationWrapper.NORMAL.getType());
-                stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i && stationList.get(i).occupied);
+                stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i && stationList.get(i).occupied, true);
             } catch (Exception ignored) {}
         });
         return res;
@@ -530,7 +595,7 @@ public class Game1 {
             if (playerList.get(i).dead) continue;
             taskQueue.add(new Task(i, playerList.get(i).position));
             stationList.get(playerList.get(i).position).reachableBy = (1 << i);
-            stationList.get(playerList.get(i).position).update();
+            stationList.get(playerList.get(i).position).update(true, playerList.get(i).tile2);
         }
         for (StationWrapper stw: stationList.values()) {
              if (stw.occupied)
@@ -565,12 +630,12 @@ public class Game1 {
         }
         // broadcast("Station claim updated successfully.");
         for (StationWrapper stw: stationList.values())
-            stw.update();
+            stw.update(false, null);
         for (PlayerWrapper plw: playerList) {
-            stationList.get(plw.position).mark(plw.tile2, false);
+            stationList.get(plw.position).mark(plw.tile2, false, true);
             if (plw.dead) continue;
             if (plw.maxScore == plw.score)
-                plw.quit(true, "no more points to gain", true, true);
+                plw.quit(true, "已占领所有可能到达的车站", true, true);
             if (!available) return;
         }
         for (int i = 0; i < n; ++i) {
@@ -594,14 +659,14 @@ public class Game1 {
     public void subscribe(Player pl) {
         if (subscriber.contains(pl)) return;
         subscriber.add(pl);
-        pl.sendMessage("Spectating game");
+        Railchess.sendMessage(pl, "已加入旁观.");
         if (plugin.playerSubGame.containsKey(pl.getName()) && plugin.playerSubGame.get(pl.getName()) != null)
             plugin.playerSubGame.get(pl.getName()).desubscribe(pl);
         plugin.playerSubGame.put(pl.getName(), this);
     }
 
     public void desubscribe(@NotNull Player pl) {
-        pl.sendMessage("Leaving game");
+        Railchess.sendMessage(pl, "已退出旁观.");
         subscriber.remove(pl);
         plugin.playerSubGame.remove(pl.getName());
     }
@@ -633,13 +698,13 @@ public class Game1 {
     }
 
     int getColour(String str) {
-        if (Objects.equals(str, ChatColor.COLOR_CHAR + "eYellow"))
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "e黄色"))
             return 1;
-        if (Objects.equals(str, ChatColor.COLOR_CHAR + "dPink"))
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "d粉色"))
             return 2;
-        if (Objects.equals(str, ChatColor.COLOR_CHAR + "aLime"))
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "a绿色"))
             return 3;
-        if (Objects.equals(str, ChatColor.COLOR_CHAR + "bLight Blue"))
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "b蓝色"))
             return 4;
         return -1;
     }
@@ -679,6 +744,7 @@ public class Game1 {
             if (pl.hasPermission("railchess.play")) {
                 p.add(pl);
                 plugin.playerInGame.put(pl.getName(), this);
+                pl.setAllowFlight(true);
             }
             if (maxNameLength < pl.getName().length()) maxNameLength = pl.getName().length();
         }
@@ -686,10 +752,10 @@ public class Game1 {
         n = p.size();
         remainingPlayers = p.size();
         Collections.shuffle(p);
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "eYellow", displayTiles(1)));
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "dPink", displayTiles(2)));
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "aLime", displayTiles(3)));
-        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "bLight Blue", displayTiles(4)));
+        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "e黄色", displayTiles(1)));
+        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "d粉色", displayTiles(2)));
+        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "a绿色", displayTiles(3)));
+        tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "b蓝色", displayTiles(4)));
         Collections.shuffle(tileList);
         if (log) {
             logger = new Game1Logger(playMap.mapId);
@@ -717,12 +783,12 @@ public class Game1 {
         }
         for (int j = 0; j < n; ++j) {
             Player pl = p.get(j);
-            broadcast("The colour for " + p.get(j).getName() + " is " + tileList.get(j).getLeft());
+            broadcast(p.get(j).getName() + " 的颜色是 " + tileList.get(j).getLeft());
             playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j),
                     tileList.get(j).getLeft().substring(0, 2)));
 
         }
-        broadcast("Game started: Map " + playMap.name + ", Maximum Steps " + maxStep);
+        broadcast("游戏开始: 地图 " + playMap.name + ", 随机数上限 " + maxStep + ", 最多卡住 " + maxHurt + " 次.");
         available = true;
         update();
         currentPlayer = n - 1;

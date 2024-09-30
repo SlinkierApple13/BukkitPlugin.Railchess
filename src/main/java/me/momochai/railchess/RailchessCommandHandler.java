@@ -22,9 +22,10 @@ public class RailchessCommandHandler implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
             if (args[0].equals("list")) {
+                Railchess.sendMessage(sender, "共有 " + plugin.stand.size() + " 个游戏站:");
                 for (RailchessStand stand: plugin.stand)
-                    sender.sendMessage(stand.fileName + " in " + stand.location.getWorld().getName() + " at (" +
-                            stand.location.getX() + ", " + stand.location.getY() + ", " + stand.location.getZ() + ")");
+                    sender.sendMessage(stand.fileName.substring(0, stand.fileName.length() - 6) + ": 位于世界 " + stand.mid().getWorld().getName() + " 中 (" +
+                            stand.mid().getX() + ", " + stand.mid().getY() + ", " + stand.mid().getZ() + ") 处.");
             }
             Player player = sender.getServer().getPlayer(sender.getName());
             if (player == null) return false;
@@ -41,7 +42,10 @@ public class RailchessCommandHandler implements CommandExecutor {
                 RailchessStand stand = new RailchessStand(plugin, location, hDir, sH, sV);
                 plugin.stand.add(stand);
                 stand.fileName = System.currentTimeMillis() + ".stand";
-                player.sendMessage("Successfully created " + stand.fileName);
+                // player.sendMessage("Successfully created " + stand.fileName);
+                Railchess.sendMessage(player, "成功创建游戏站:");
+                player.sendMessage(stand.fileName.substring(0, stand.fileName.length() - 6) + ": 位于世界 " + stand.mid().getWorld().getName() + " 中 (" +
+                        stand.mid().getX() + ", " + stand.mid().getY() + ", " + stand.mid().getZ() + ") 处.");
                 stand.save(new File(plugin.standFolder, stand.fileName));
             } else if (args[0].equals("join")) {
                 if (plugin.playerInGame.containsKey(player.getName()) ||
@@ -69,7 +73,6 @@ public class RailchessCommandHandler implements CommandExecutor {
                     return false;
                 RailchessStand stand = plugin.playerInStand.get(player.getName());
                 if (args[1].isBlank()) return false;
-                stand.broadcast("Editing map " + args[1]);
                 stand.newEditor(args[1].replaceAll("\\s+", ""));
             } else if (args[0].equals("game") || args[0].equals("play")) {
                 if (!player.hasPermission("railchess.play"))
@@ -90,12 +93,13 @@ public class RailchessCommandHandler implements CommandExecutor {
                 if (!player.hasPermission("railchess.edit"))
                     return false;
                 for (RailchessStand stand: plugin.stand) {
-                    if (Objects.equals(stand.fileName, args[1])) {
+                    String arg = args[1] + ".stand";
+                    if (Objects.equals(stand.fileName, arg)) {
                         if (stand.occupied()) break;
                         for (Player pl: stand.players)
                             stand.playerLeave(pl);
                         plugin.stand.remove(stand);
-                        player.sendMessage("Successfully removed " + args[1]);
+                        Railchess.sendMessage(player, "已移除游戏站 " + args[1] + ".");
                         return new File(plugin.standFolder, stand.fileName).delete();
                     }
                 }

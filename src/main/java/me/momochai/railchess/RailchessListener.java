@@ -1,5 +1,6 @@
 package me.momochai.railchess;
 
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
@@ -28,7 +29,7 @@ public class RailchessListener implements Listener {
         plugin = p;
     }
 
-    @EventHandler (priority = EventPriority.LOWEST)
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerInteract(@NotNull PlayerInteractEvent e) {
         try {
             if (!Objects.requireNonNull(e.getItem()).getType().equals(ITEM))
@@ -60,7 +61,7 @@ public class RailchessListener implements Listener {
         }
     }
 
-    @EventHandler (priority = EventPriority.LOWEST)
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent e) {
         try {
             if (!Objects.requireNonNull(e.getPlayer().getInventory().getItemInMainHand()).getType().equals(ITEM))
@@ -87,7 +88,7 @@ public class RailchessListener implements Listener {
         }
     }
 
-    @EventHandler (priority = EventPriority.LOWEST)
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onHangingBreakByEntity(@NotNull HangingBreakByEntityEvent e) {
         Entity remover = e.getRemover();
         if (!(remover instanceof Player)) return;
@@ -119,7 +120,7 @@ public class RailchessListener implements Listener {
         }
     }
 
-    @EventHandler (priority = EventPriority.LOWEST)
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(@NotNull EntityDamageByEntityEvent e) {
         Entity remover = e.getDamager();
         if (!(remover instanceof Player)) return;
@@ -152,15 +153,19 @@ public class RailchessListener implements Listener {
         }
     }
 
-    @EventHandler (priority = EventPriority.LOWEST)
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent e) {
         Player pl = e.getPlayer();
+        if (pl.getGameMode() != GameMode.CREATIVE && pl.getGameMode() != GameMode.SPECTATOR)
+            pl.setAllowFlight(false);
         plugin.leaveAll(pl);
     }
 
-    @EventHandler (priority = EventPriority.LOWEST)
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerLeave(@NotNull PlayerQuitEvent e) {
         Player pl = e.getPlayer();
+        if (pl.getGameMode() != GameMode.CREATIVE && pl.getGameMode() != GameMode.SPECTATOR)
+            pl.setAllowFlight(false);
         plugin.leaveAll(pl);
     }
 

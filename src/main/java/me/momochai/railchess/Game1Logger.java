@@ -25,7 +25,8 @@ public class Game1Logger implements Comparable {
 
     public String brief(@NotNull Railchess plugin) {
         if (!plugin.railmap.containsKey(mapId)) return null;
-        return ("Log " + logId + ": Map " + plugin.railmap.get(mapId).name + ", " + totalMoves + " steps, " + time.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+        return ("对局 " + logId + ": 地图 " + plugin.railmap.get(mapId).name + ", 共" + (totalMoves - 1) + " 手, 开始时间 "
+                + time.format(DateTimeFormatter.ISO_ZONED_DATE_TIME) + ".");
     }
 
     @Override

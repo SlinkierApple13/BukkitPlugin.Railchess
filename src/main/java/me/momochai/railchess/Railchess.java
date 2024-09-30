@@ -1,6 +1,8 @@
 package me.momochai.railchess;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -13,6 +15,7 @@ import java.util.logging.Level;
 
 public final class Railchess extends JavaPlugin {
 
+    public static final float BUTTON_SIZE = 0.1f;
     public List<RailchessStand> stand = new ArrayList<>();
     public Map<Long, Railmap> railmap = new HashMap<>();
     public Map<String, Long> railmapDict = new HashMap<>();
@@ -50,8 +53,8 @@ public final class Railchess extends JavaPlugin {
         }
         if (playerInGame.containsKey(pl.getName())) {
             playerInGame.get(pl.getName()).subscriber.remove(pl);
-            while (playerInGame.get(pl.getName()).getPlayerWrapper(pl) != null)
-                playerInGame.get(pl.getName()).getPlayerWrapper(pl).quit(false, "", true, false);
+            while (playerInGame.get(pl.getName()).getPlayerWrapper(pl.getName()) != null)
+                playerInGame.get(pl.getName()).getPlayerWrapper(pl.getName()).quit(false, "", true, false);
         }
         if (playerSubGame.containsKey(pl.getName())) {
             playerSubGame.get(pl.getName()).desubscribe(pl);
@@ -149,6 +152,22 @@ public final class Railchess extends JavaPlugin {
             return false;
         }
         return true;
+    }
+
+    public static void sendMessage(Player player, String str) {
+        if (player == null || !player.isValid()) return;
+        player.sendMessage(ChatColor.COLOR_CHAR + "6轨交棋 > " + ChatColor.COLOR_CHAR + 'r' + str);
+    }
+
+    public static void sendMessage(CommandSender sender, String str) {
+        if (sender == null) return;
+        sender.sendMessage(ChatColor.COLOR_CHAR + "6轨交棋 > " + ChatColor.COLOR_CHAR + 'r' + str);
+    }
+
+    public static void sendMessage(Player player, String str, String head) {
+        if (player == null || !player.isValid()) return;
+        if (!head.isEmpty()) player.sendMessage(ChatColor.COLOR_CHAR + head + " > " + ChatColor.COLOR_CHAR + 'r' + str);
+        else player.sendMessage(str);
     }
 
     public class LoadAll extends BukkitRunnable {

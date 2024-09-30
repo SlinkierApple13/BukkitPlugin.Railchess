@@ -33,7 +33,7 @@ public class EditorCommandHandler implements CommandExecutor {
         @Override
         public void run() {
             boolean b = plugin.railmap.get(mapId).save(new File(plugin.mapFolder, mapId + ".railmap"));
-            editor.broadcastMessage((b ? "Map saved" : "Failed to save the map"));
+            editor.broadcastMessage((b ? "地图已保存." : "地图保存失败."));
         }
 
     }
@@ -53,8 +53,8 @@ public class EditorCommandHandler implements CommandExecutor {
                     plugin.playerSubGame.get(player.getName()).desubscribe(player);
                 RailchessStand stand = plugin.nearbyStand(player);
                 if (stand == null) return false;
-                stand.editor.broadcastMessage(player.getName() + " has joined");
-                player.sendMessage("Successfully joined editor " + stand.editor.name + ".railmap");
+                stand.editor.broadcastMessage(player.getName() + " 加入了编辑.");
+                player.sendMessage("已加入对地图 " + stand.editor.name + " 的编辑.");
                 stand.editor.editingPlayer.add(player);
                 plugin.playerInEditor.put(player.getName(), stand.editor);
                 return true;
@@ -78,7 +78,7 @@ public class EditorCommandHandler implements CommandExecutor {
                             !editor.stationList.containsKey(editor.currentStation))
                         return false;
                     editor.spawnRepellence.add(MutablePair.of(editor.previousStation, editor.currentStation));
-                    editor.broadcastMessage("Successfully added spawn repellence " + editor.previousStation +
+                    editor.broadcastMessage("已添加初始位置禁例 " + editor.previousStation +
                             " <-> " + editor.currentStation);
                 }
                 if (args[1].equals("transferRepellence") || args[1].equals("notransfer")) {
@@ -87,7 +87,7 @@ public class EditorCommandHandler implements CommandExecutor {
                     if (editor.transferRepellence.contains(MutablePair.of(l1, l2)))
                         return false;
                     editor.transferRepellence.add(MutablePair.of(l1, l2));
-                    editor.broadcastMessage("Successfully added transfer repellence " + l1 +
+                    editor.broadcastMessage("已添加换乘禁例 " + l1 +
                             " <-> " + l2);
                 }
                 if (args[1].equals("trainForbid") || args[1].equals("notrain")) {
@@ -104,7 +104,7 @@ public class EditorCommandHandler implements CommandExecutor {
             } else if (args[0].equals("remove")) {
                 if (args[1].equals("spawnRepellence") || args[1].equals("nospawn")) {
                     editor.spawnRepellence.remove(MutablePair.of(editor.previousStation, editor.currentStation));
-                    editor.broadcastMessage("Successfully removed spawn repellence " + editor.previousStation +
+                    editor.broadcastMessage("已移除初始位置禁例 " + editor.previousStation +
                             " <-> " + editor.currentStation);
                 }
                 if (args[1].equals("transferRepellence") || args[1].equals("notransfer")) {
@@ -113,7 +113,7 @@ public class EditorCommandHandler implements CommandExecutor {
                     if (!editor.transferRepellence.contains(MutablePair.of(l1, l2)))
                         return false;
                     editor.transferRepellence.remove(MutablePair.of(l1, l2));
-                    editor.broadcastMessage("Successfully removed transfer repellence " + l1 +
+                    editor.broadcastMessage("已移除换乘禁例 " + l1 +
                             " <-> " + l2);
                 }
                 if (args[1].equals("trainForbid") || args[1].equals("notrain")) {
@@ -137,10 +137,10 @@ public class EditorCommandHandler implements CommandExecutor {
             } else if (args[0].equals("leave")) {
                 editor.editingPlayer.remove(player);
                 plugin.playerInEditor.remove(player.getName());
-                editor.broadcastMessage(player.getName() + " left");
-                player.sendMessage("Left editor");
+                editor.broadcastMessage(player.getName() + " 退出了编辑.");
+                player.sendMessage("已退出当前编辑.");
             } else if (args[0].equals("close")) {
-                editor.broadcastMessage("Editor closed");
+                editor.broadcastMessage("已关闭当前编辑.");
                 editor.close();
             } else if (args[0].equals("readonly")) {
                 editor.makeReadOnly();

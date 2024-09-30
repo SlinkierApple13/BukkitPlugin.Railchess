@@ -26,7 +26,7 @@ public class MapCommandHandler implements CommandExecutor {
         @Override
         public void run() {
             plugin.railmap.get(id).save(new File(plugin.mapFolder, id + ".railmap"));
-            player.sendMessage("Map renamed to " + plugin.railmap.get(id).name);
+            player.sendMessage("已将地图重命名为 " + plugin.railmap.get(id).name + ".");
         }
 
     }
@@ -43,8 +43,9 @@ public class MapCommandHandler implements CommandExecutor {
             Player player = sender.getServer().getPlayer(sender.getName());
             if (!player.hasPermission("railchess.edit")) return false;
             if (Objects.equals(args[0], "list")) {
+                Railchess.sendMessage(player, "共有 " + plugin.railmap.size() + "张地图:");
                 plugin.railmap.forEach((id, rmp) ->
-                    player.sendMessage("Map " + rmp.name + ((rmp.readOnly) ? ": read-only" : "")));
+                    player.sendMessage("地图 " + rmp.name + ((rmp.readOnly) ? ": 只读" : ".")));
                 return true;
             }
             if (Objects.equals(args[0], "rename")) {

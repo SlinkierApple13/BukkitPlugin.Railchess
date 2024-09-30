@@ -62,7 +62,7 @@ public class Game1Replayer {
                 entity = (ItemDisplay) stand.location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
                 entity.setBrightness(new Display.Brightness(15, 0));
                 entity.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+                        new Quaternionf(), new Vector3f(Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE), new Quaternionf()));
             }
             entity.setItemStack(item);
             entity.setInvulnerable(true);
@@ -71,7 +71,7 @@ public class Game1Replayer {
 //                entity2 = (ItemDisplay) stand.location.getWorld().spawnEntity(loc, EntityType.ITEM_DISPLAY);
 //                entity2.setBrightness(new Display.Brightness(15, 0));
 //                entity2.setTransformation(new Transformation(new Vector3f(0.0f, 0.0f, 0.0f),
-//                        new Quaternionf(), new Vector3f(0.1f, 0.1f, 0.1f), new Quaternionf()));
+//                        new Quaternionf(), new Vector3f(Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE, Railchess.BUTTON_SIZE), new Quaternionf()));
 //            }
 //            entity2.setItemStack(item);
 //            entity2.setInvulnerable(true);
@@ -129,9 +129,9 @@ public class Game1Replayer {
     public void display() {
         try {
             if (logger.getMove(currentStep) == null) return;
-            broadcast("Step " + currentStep + " / " + logger.totalMoves);
+            broadcast("第 " + currentStep + " / " + (logger.totalMoves - 1) + " 手");
             for (final String str : logger.getMove(currentStep).buffer)
-                broadcast(str);
+                plainBroadcast(str);
             stationList.forEach((id, stw) -> stw.mark(getItem(id)));
         } catch (ConcurrentModificationException ignored) {}
     }
@@ -153,25 +153,37 @@ public class Game1Replayer {
         // Bukkit.getLogger().log(Level.INFO, s);
         for (Player pl: subscriberList)
             if (pl.isValid())
-                pl.sendMessage(s);
+                Railchess.sendMessage(pl, s, "6轨交棋回放");
         for (Player pl: stand.mid().getNearbyPlayers(RANGE))
             if (!subscriberList.contains(pl))
-                pl.sendMessage(s);
+                Railchess.sendMessage(pl, s, "6轨交棋回放");
+    }
+
+    public void plainBroadcast(String s) {
+        // Bukkit.getLogger().log(Level.INFO, s);
+        for (Player pl: subscriberList)
+            if (pl.isValid())
+                Railchess.sendMessage(pl, s, "");
+        for (Player pl: stand.mid().getNearbyPlayers(RANGE))
+            if (!subscriberList.contains(pl))
+                Railchess.sendMessage(pl, s, "");
     }
 
     public void playerJoin(@NotNull Player pl, boolean info) {
         if (subscriberList.contains(pl) || !plugin.isAvailable(pl, true))
             return;
+        if (info) broadcast(pl.getName() + " 加入了回放.");
         subscriberList.add(pl);
         plugin.playerInReplay.put(pl.getName(), this);
-        if (info) broadcast(pl.getName() + " joined the replay");
+        if (info) Railchess.sendMessage(pl, "已加入当前回放.", "6对局回放");
     }
 
     public void playerLeave(@NotNull Player pl) {
         if (!subscriberList.contains(pl)) return;
-        broadcast(pl.getName() + " left");
+        Railchess.sendMessage(pl, "已离开当前回放.", "6对局回放");
         plugin.playerInReplay.remove(pl.getName());
         subscriberList.remove(pl);
+        broadcast(pl.getName() + " 离开了回放.");
     }
 
     Game1Replayer(Railchess p, @NotNull RailchessStand s, Railmap m, @NotNull Game1Logger l) {
@@ -185,7 +197,7 @@ public class Game1Replayer {
             plugin.playerInStand.remove(pl.getName());
             playerJoin(pl, false);
         });
-        broadcast("Replaying game " + l.logId);
+        broadcast("开始回放对局 " + l.logId + ".");
         map.station.forEach((id, sta) -> stationList.put(id, new StationWrapper(sta)));
         jumpTo(0);
     }
