@@ -25,6 +25,7 @@ public class Game1Replayer {
     int currentStep;
     int n;
     public static final double RANGE = 10.0d;
+    boolean closed = false;
 
     MutablePair<ItemStack, ItemStack> displayTiles(int colour) {
         return switch (colour) {
@@ -42,7 +43,9 @@ public class Game1Replayer {
     }
 
     public void close() {
+        closed = true;
         ArrayList<Player> pls = new ArrayList<>(subscriberList);
+        broadcast("回放已关闭.");
         pls.forEach(this::playerLeave);
         stationList.forEach((id, st) -> st.close());
         stand.replayer = null;
@@ -153,10 +156,10 @@ public class Game1Replayer {
         // Bukkit.getLogger().log(Level.INFO, s);
         for (Player pl: subscriberList)
             if (pl.isValid())
-                Railchess.sendMessage(pl, s, "6轨交棋回放");
+                Railchess.sendMessage(pl, s, "6对局回放");
         for (Player pl: stand.mid().getNearbyPlayers(RANGE))
             if (!subscriberList.contains(pl))
-                Railchess.sendMessage(pl, s, "6轨交棋回放");
+                Railchess.sendMessage(pl, s, "6对局回放");
     }
 
     public void plainBroadcast(String s) {
@@ -172,7 +175,7 @@ public class Game1Replayer {
     public void playerJoin(@NotNull Player pl, boolean info) {
         if (subscriberList.contains(pl) || !plugin.isAvailable(pl, true))
             return;
-        if (info) broadcast(pl.getName() + " 加入了回放.");
+        // if (info) broadcast(pl.getName() + " 加入了回放.");
         subscriberList.add(pl);
         plugin.playerInReplay.put(pl.getName(), this);
         if (info) Railchess.sendMessage(pl, "已加入当前回放.", "6对局回放");
@@ -180,10 +183,10 @@ public class Game1Replayer {
 
     public void playerLeave(@NotNull Player pl) {
         if (!subscriberList.contains(pl)) return;
-        Railchess.sendMessage(pl, "已离开当前回放.", "6对局回放");
+        if (!closed) { Railchess.sendMessage(pl, "已离开当前回放.", "6对局回放"); }
         plugin.playerInReplay.remove(pl.getName());
         subscriberList.remove(pl);
-        broadcast(pl.getName() + " 离开了回放.");
+        // broadcast(pl.getName() + " 离开了回放.");
     }
 
     Game1Replayer(Railchess p, @NotNull RailchessStand s, Railmap m, @NotNull Game1Logger l) {

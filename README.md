@@ -127,9 +127,12 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Stops subscribing to the current game.
 
 **/rclog**: The command for game logs.
-* **/rclog list**
+* **/rclog all**\
   Requires permission: railchess.subscribe.\
   Lists all previous game logs.
+* **/rclog list \[count\]**\
+  Requires permission: railchess.subscribe.\
+  Lists last \[count\] game logs.
 
 **/rcreplay**: The command for game replays.
 * **/rcreplay join**\

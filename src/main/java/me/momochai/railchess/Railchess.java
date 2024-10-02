@@ -29,6 +29,7 @@ public final class Railchess extends JavaPlugin {
     public File standFolder;
     public File logFolder;
     public final Railchess _thisPlugin = this;
+    public boolean disabled = false;
 
     public boolean isAvailable(@NotNull Player player, boolean strict) {
         return !(playerInGame.containsKey(player.getName()) || playerInEditor.containsKey(player.getName()) || playerInReplay.containsKey(player.getName()) ||
@@ -86,6 +87,7 @@ public final class Railchess extends JavaPlugin {
 //    }
 
     public void closeAll() {
+        disabled = true;
         stand.forEach(st -> {
            if (st.editor != null)
                st.editor.close();

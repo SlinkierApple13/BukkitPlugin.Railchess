@@ -43,9 +43,9 @@ public class MapCommandHandler implements CommandExecutor {
             Player player = sender.getServer().getPlayer(sender.getName());
             if (!player.hasPermission("railchess.edit")) return false;
             if (Objects.equals(args[0], "list")) {
-                Railchess.sendMessage(player, "共有 " + plugin.railmap.size() + "张地图:");
+                Railchess.sendMessage(player, "共有 " + plugin.railmap.size() + " 张地图:");
                 plugin.railmap.forEach((id, rmp) ->
-                    player.sendMessage("地图 " + rmp.name + ((rmp.readOnly) ? ": 只读" : ".")));
+                    player.sendMessage("地图 " + rmp.name + ((rmp.readOnly) ? ": 只读." : ".")));
                 return true;
             }
             if (Objects.equals(args[0], "rename")) {

@@ -44,7 +44,7 @@ public class Game1 {
     public static final double BROADCAST_RANGE = 10.0d;
     Game1Logger logger;
     int maxNameLength = 0;
-    public static final float BIG_BUTTON_SIZE = 0.11f;
+    public static final float BIG_BUTTON_SIZE = 0.115f;
 
     public class SaveLog extends BukkitRunnable {
 
@@ -104,7 +104,7 @@ public class Game1 {
     public void broadcast(String s) {
         for (Player pl: subscriber)
             if (pl.isValid())
-                pl.sendMessage(s);
+                Railchess.sendMessage(pl, s);
         if (log) logger.logMessage(ChatColor.COLOR_CHAR + "6对局回放 > " + ChatColor.COLOR_CHAR + "r" + s);
         if (!available) return;
         for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
@@ -150,7 +150,7 @@ public class Game1 {
         }
 
         public void broadcastStep() {
-            broadcast(displayName + "的回合: 随机数是 " + step + ".");
+            broadcast(displayName + " 的回合: 随机数是 " + step + ".");
         }
 
         public void quit(boolean hasReason, String reason, boolean triggerEnd, boolean showMessage) {
@@ -397,7 +397,7 @@ public class Game1 {
     }
 
     public void close() {
-        if (log) {
+        if (log && !plugin.disabled) {
             logger.advance(this, true);
             try {
                 new SaveLog();
@@ -554,7 +554,8 @@ public class Game1 {
                 else if (stationList.get(i).occupied)
                     mat = darkened(tileList.get(pl).getRight().getLeft().getType());
                 else mat = darkened(StationWrapper.NORMAL.getType());
-                stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i && stationList.get(i).occupied, true);
+                stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i
+                        /* && stationList.get(i).occupied */, true);
             } catch (Exception ignored) {}
         });
         return res;
@@ -642,7 +643,7 @@ public class Game1 {
             String tail = ChatColor.COLOR_CHAR + "6" + ChatColor.COLOR_CHAR + "r";
             if (!(playerList.get(i).prevScore == -1 || playerList.get(i).prevScore == playerList.get(i).score))
                 tail = ChatColor.COLOR_CHAR + "6+" + (playerList.get(i).score - playerList.get(i).prevScore) + ChatColor.COLOR_CHAR + "r";
-            broadcast(String.format("%" + (maxNameLength + 4) + "s", playerList.get(i).displayName) + " -" +
+            plainBroadcast(String.format("%" + (maxNameLength + 4) + "s", playerList.get(i).displayName) + " -" +
                     String.format("%" + 5 + "s", playerList.get(i).score) + " /" + ChatColor.COLOR_CHAR + "7" +
                     String.format("%" + 5 + "s", playerList.get(i).maxScore) + ChatColor.COLOR_CHAR + "r" +
                     String.format("%" + 10 + "s", tail));
@@ -659,14 +660,14 @@ public class Game1 {
     public void subscribe(Player pl) {
         if (subscriber.contains(pl)) return;
         subscriber.add(pl);
-        Railchess.sendMessage(pl, "已加入旁观.");
+        Railchess.sendMessage(pl, " 已加入旁观.");
         if (plugin.playerSubGame.containsKey(pl.getName()) && plugin.playerSubGame.get(pl.getName()) != null)
             plugin.playerSubGame.get(pl.getName()).desubscribe(pl);
         plugin.playerSubGame.put(pl.getName(), this);
     }
 
     public void desubscribe(@NotNull Player pl) {
-        Railchess.sendMessage(pl, "已退出旁观.");
+        Railchess.sendMessage(pl, " 已退出旁观.");
         subscriber.remove(pl);
         plugin.playerSubGame.remove(pl.getName());
     }
@@ -677,6 +678,7 @@ public class Game1 {
         if (!currentChoices.contains(destination))
             return false;
         playerList.get(pl).position = destination;
+        broadcast(getCurrent().displayName + " 已落子.");
         update();
         advance();
         return true;
@@ -724,7 +726,7 @@ public class Game1 {
 
     Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH, boolean sC) {
         available = false;
-        maxHurt = mH;
+        maxHurt = mH + 1;
         showChoices = sC;
         stand = st;
         plugin = pp;
@@ -783,12 +785,12 @@ public class Game1 {
         }
         for (int j = 0; j < n; ++j) {
             Player pl = p.get(j);
-            broadcast(p.get(j).getName() + " 的颜色是 " + tileList.get(j).getLeft());
+            plainBroadcast(p.get(j).getName() + " 的颜色是 " + tileList.get(j).getLeft() + ChatColor.COLOR_CHAR + "r.");
             playerList.add(new PlayerWrapper(pl, tileList.get(j).getRight(), spawn.get(j),
                     tileList.get(j).getLeft().substring(0, 2)));
 
         }
-        broadcast("游戏开始: 地图 " + playMap.name + ", 随机数上限 " + maxStep + ", 最多卡住 " + maxHurt + " 次.");
+        broadcast("游戏开始: 地图 " + playMap.name + ", 随机数上限 " + maxStep + ", 最多卡住 " + mH + " 次.");
         available = true;
         update();
         currentPlayer = n - 1;

@@ -47,7 +47,7 @@ public class RailchessStand {
         String str = "当前队列中玩家: ";
         for (Player pl: players)
             str += (pl.getName() + ", ");
-        broadcast(str.substring(0, str.length() - 2));
+        broadcast(str.substring(0, str.length() - 2) + ".");
     }
 
     public boolean occupied() {

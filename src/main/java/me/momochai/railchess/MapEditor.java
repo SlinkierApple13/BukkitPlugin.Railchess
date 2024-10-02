@@ -230,7 +230,7 @@ public class MapEditor {
     }
 
     public boolean checkReadOnly() {
-        if (readOnly) broadcastMessage("This map is read-only");
+        if (readOnly) broadcastMessage("该地图为只读, 不可编辑.");
         return readOnly;
     }
 
@@ -304,7 +304,7 @@ public class MapEditor {
             if (Objects.requireNonNull(plugin.getMap(name1)).readOnly) {
                 // broadcastMessage("Map failed to save as " + name1 + ": map " +
                 //        name1 + " already exists, and is read-only");
-                broadcastMessage("无法将地图另存为 " + name1 + ": 地图 " + name1 + " 已经存在，且为只读.");
+                broadcastMessage("无法将地图另存为 " + name1 + ": 地图 " + name1 + " 已经存在, 且为只读.");
                 return null;
             }
         }
@@ -354,7 +354,7 @@ public class MapEditor {
     public void makeReadOnly() {
         if (readOnly) return;
         readOnly = true;
-        broadcastMessage("已将地图设为只读");
+        broadcastMessage("已将地图设为只读.");
     }
 
     public void refresh() {
