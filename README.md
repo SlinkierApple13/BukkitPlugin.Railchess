@@ -206,11 +206,8 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
 
 **/rcfix**: The command for fixing bugged entities.
 * **/rcfix true**\
-  Requires permission: railchess.op.\
+  Requires permission: railchess.edit.\
   Removes all entities summoned by the Railchess plugin within the distance of $16$ blocks.
-* **/rcfix false**\
-  Requires permission: railchess.op.\
-  Removes all item displays in $16$ blocks.
 
 Note: Map deletions are very dangerous (since it takes a lot of time to create one), and thus
 there is no command to directly delete a map. 

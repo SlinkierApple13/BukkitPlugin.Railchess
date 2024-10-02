@@ -17,15 +17,8 @@ commands:
   rclog:
     permission: railchess.subscribe
   rcfix:
-    permission: railchess.op
+    permission: railchess.edit
 permissions:
-  railchess.op:
-    description: Permission for ops
-    default: op
-    children:
-      railchess.edit: true
-      railchess.play: true
-      railchess.subscribe: true
   railchess.edit:
     description: Permission for editing maps
     default: op

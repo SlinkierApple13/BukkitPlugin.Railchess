@@ -17,7 +17,7 @@ public class RailchessFixer implements CommandExecutor {
         try {
             Player player = sender.getServer().getPlayer(sender.getName());
             if (player == null) return false;
-            if (!player.hasPermission("railchess.op")) return false;
+            if (!player.hasPermission("railchess.edit")) return false;
             Location loc = player.getLocation();
             Collection<Entity> itds = loc.getNearbyEntitiesByType(ItemDisplay.class,15.0f);
             for (Entity e: itds) {
