@@ -19,7 +19,7 @@ public class RailchessFixer implements CommandExecutor {
             if (player == null) return false;
             if (!player.hasPermission("railchess.edit")) return false;
             Location loc = player.getLocation();
-            Collection<Entity> itds = loc.getNearbyEntitiesByType(ItemDisplay.class,15.0f);
+            Collection<Entity> itds = loc.getNearbyEntitiesByType(ItemDisplay.class, 15.0f);
             for (Entity e: itds) {
                 if (e.getScoreboardTags().contains("railchess"))
                     e.remove();

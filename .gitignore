@@ -1,3 +1,9 @@
+# .mailmap
+*.mailmap
+
+# vscode
+.vscode/
+
 # User-specific stuff
 .idea/
 
