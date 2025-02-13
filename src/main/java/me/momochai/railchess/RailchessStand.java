@@ -153,11 +153,11 @@ public class RailchessStand {
         return res;
     }
 
-    public boolean newGame(String mapName, int maxStep, int maxHurt, boolean showChoices) {
+    public boolean newGame(String mapName, int maxStep, int maxHurt, boolean showChoices, int basicTime, int extraTime) {
         if (occupied() || !plugin.railmapDict.containsKey(mapName) || playables() <= 1 ||
             maxStep > 16 || maxStep < 1) return false;
         new Game1(plugin, this, Objects.requireNonNull(plugin.getMap(mapName)), players,
-                location, sizeH, sizeV, maxStep, hDir, maxHurt, showChoices);
+                location, sizeH, sizeV, maxStep, hDir, maxHurt, showChoices, basicTime, extraTime);
         for (Player pl: players)
             plugin.playerInStand.remove(pl.getName());
         if (editor != null) editor.close();

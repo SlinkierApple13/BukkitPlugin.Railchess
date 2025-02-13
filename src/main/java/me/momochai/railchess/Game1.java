@@ -2,6 +2,9 @@ package me.momochai.railchess;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.bukkit.*;
+import org.bukkit.boss.BossBar;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
@@ -20,6 +23,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Game1 {
+
+    final int basicTime;
+    final int extraTime;
 
     int n;
     int remainingPlayers;
@@ -76,11 +82,17 @@ public class Game1 {
         for (PlayerWrapper pl: playerList)
             plainBroadcast(String.format("%" + (maxNameLength + 4) + "s", pl.displayName) + " -" +
                     String.format("%" + 5 + "s", pl.score));
-        close();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                close();
+            }
+        }.runTaskLater(plugin, 40);
     }
 
     public void advance() {
         if (!available) return;
+        getCurrent().countdown.cancel();
         if (log) logger.advance(this, false);
         if (remainingPlayers <= 1) end();
         if (getCurrent().step != 0 && !getCurrent().dead) getCurrent().getNextStep();
@@ -99,6 +111,8 @@ public class Game1 {
                 getCurrent().quit(true, "卡住次数超过上限", true, true);
             else advance();
         }
+        getCurrent().countdown.cancel();
+        getCurrent().countdown.start();
     }
 
     public void broadcast(String s) {
@@ -110,6 +124,16 @@ public class Game1 {
         for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
             if (!subscriber.contains(pl))
                 Railchess.sendMessage(pl, s);
+    }
+
+    public void broadcastBossbar(BossBar bar) {
+        for (Player pl: subscriber)
+            if (pl.isValid())
+                bar.addPlayer(pl);
+        if (!available) return;
+        for (Player pl: stand.mid().getNearbyPlayers(BROADCAST_RANGE))
+            if (!subscriber.contains(pl))
+                bar.addPlayer(pl);
     }
 
     public void plainBroadcast(String s) {
@@ -137,7 +161,66 @@ public class Game1 {
         boolean dead;
         int hurt;
         String displayName;
-        // Color glowColour;
+        BarColor barColor;
+
+        public class Countdown {
+            
+            int extTimeLeft;
+            int timeLeft;
+            int timeLeftTicks;
+            boolean running;
+            BukkitRunnable task;
+            BossBar bossBar;
+
+            public void start() {
+                running = true;
+                timeLeft = basicTime + extTimeLeft;
+                timeLeftTicks = timeLeft * 20;
+                bossBar = Bukkit.createBossBar("剩余时间: " + basicTime + "+" + extTimeLeft + "s", barColor, BarStyle.SOLID);
+                if (bossBar != null) bossBar.setProgress((double) timeLeftTicks / ((basicTime + extraTime) * 20.0));
+                if (bossBar != null) broadcastBossbar(bossBar);
+                task = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!running) {
+                            cancel();
+                            return;
+                        }
+                        if (timeLeft <= 0) {
+                            quit(true, "时间耗尽", true, true);
+                            cancel();
+                            return;
+                        }
+                        int basicTimeLeft = (timeLeft < extTimeLeft) ? 0 : (timeLeft - extTimeLeft);
+                        int realExtTimeLeft = (timeLeft < extTimeLeft) ? timeLeft : extTimeLeft;
+                        if (bossBar != null) bossBar.setTitle("剩余时间: " + basicTimeLeft + "+" + realExtTimeLeft + "s");
+                        if (bossBar != null) bossBar.setProgress((double) timeLeftTicks / ((basicTime + extraTime) * 20.0));
+                        --timeLeftTicks;
+                        timeLeft = (timeLeftTicks + 19) / 20;
+                    }
+                };
+                task.runTaskTimer(plugin, 0, 1);
+            }
+
+            public void cancel() {
+                running = false;
+                if (task != null) {
+                    task.cancel();
+                    if (bossBar != null)
+                        bossBar.removeAll();
+                    bossBar = null;
+                    if (timeLeft < extTimeLeft) extTimeLeft = timeLeft;
+                }
+            }
+
+            Countdown() {
+                extTimeLeft = extraTime;
+                running = false;
+                task = null;
+            }
+        }
+
+        Countdown countdown;
 
         public void getNextStep() {
             step = random.nextInt(maxStep) + 1;
@@ -154,20 +237,20 @@ public class Game1 {
         }
 
         public void quit(boolean hasReason, String reason, boolean triggerEnd, boolean showMessage) {
+            countdown.cancel();
             if (showMessage) {
                 if (!hasReason)
                     broadcast(displayName + " 离开了.");
                 else
                     broadcast(displayName + " 离开了: " + reason + ".");
             }
-            if (player != null && player.isValid())
-                if (player.getGameMode() != GameMode.CREATIVE &&
-                    player.getGameMode() != GameMode.SPECTATOR)
-                    player.setAllowFlight(false);
             dead = true;
             boolean duplicateAlive = false;
             for (PlayerWrapper plw: playerList)
                 duplicateAlive |= (!plw.dead && plw.playerName.equals(playerName));
+            if (!duplicateAlive && player != null && player.isValid())
+                if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
+                    player.setAllowFlight(false);
             if (!duplicateAlive)
                 plugin.playerInGame.remove(playerName);
             if (!triggerEnd) {
@@ -202,15 +285,15 @@ public class Game1 {
             dead = false;
             hurt = 0;
             displayName = prefix + pl.getName() + ChatColor.COLOR_CHAR + "r";
-//            try {
-//                char ch = prefix.charAt(1);
-//                glowColour = Color.WHITE;
-//                if (ch == '6') glowColour = Color.ORANGE;
-//                if (ch == 'a') glowColour = Color.LIME;
-//                if (ch == 'b') glowColour = Color.AQUA;
-//                if (ch == 'd') glowColour = Color.FUCHSIA;
-//                if (ch == 'e') glowColour = Color.YELLOW;
-//            } catch (Exception ignored) {}
+            countdown = new Countdown();
+           try {
+               char ch = prefix.charAt(1);
+               barColor = BarColor.WHITE;
+               if (ch == 'a') barColor = BarColor.GREEN;
+               if (ch == 'b') barColor = BarColor.BLUE;
+               if (ch == 'd') barColor = BarColor.PINK;
+               if (ch == 'e') barColor = BarColor.YELLOW;
+           } catch (Exception ignored) {}
         }
 
     }
@@ -223,7 +306,7 @@ public class Game1 {
         int occupiedBy;
         ItemDisplay entity;
         ItemDisplay entity2;
-        ItemDisplay glower;
+        // ItemDisplay glower;
         int reachableBy; // sum of (2^(i)) for all reachable player i
         boolean cancelMark = false;
         public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
@@ -298,7 +381,7 @@ public class Game1 {
             entity.addScoreboardTag("railchess");
             if (!bold) {
                 if (entity2 != null && entity2.isValid())
-                    entity2.remove();
+                    entity2.setItemStack(NORMAL);
                 return;
             }
             if (entity2 == null || !entity2.isValid()) {
@@ -331,11 +414,8 @@ public class Game1 {
 //        }
 
         public void close() {
-            entity.remove();
-            if (entity2 != null && entity2.isValid())
-                entity2.remove();
-            if (glower != null && glower.isValid())
-                glower.remove();
+            if (entity != null) entity.remove();
+            if (entity2 != null) entity2.remove();
         }
 
         public Location getLocation() {
@@ -406,9 +486,8 @@ public class Game1 {
         subscriber.clear();
         for (PlayerWrapper plw: playerList)
             plw.quit(false, "", false, false);
-        for (StationWrapper stw: stationList.values())
-            stw.close();
         stand.game = null;
+        stationList.forEach((id, st) -> st.close());
     }
 
     public PlayerWrapper getPlayerWrapper(String playerName) {
@@ -557,7 +636,7 @@ public class Game1 {
                     mat = darkened(tileList.get(pl).getRight().getLeft().getType());
                 else mat = darkened(StationWrapper.NORMAL.getType());
                 stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i
-                        /* && stationList.get(i).occupied */, true);
+                        /* && stationList.get(i).occupied */, stationList.get(i).occupied);
             } catch (Exception ignored) {}
         });
         return res;
@@ -733,7 +812,7 @@ public class Game1 {
         return mid().getNearbyLivingEntities(RailchessStand.RANGE).contains(pl);
     }*/
 
-    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH, boolean sC) {
+    Game1(@NotNull Railchess pp, @NotNull RailchessStand st, @NotNull Railmap playMap, @NotNull List<Player> players, Location loc, double sH, double sV, int mStep, Vector hd, int mH, boolean sC, int b_t, int ex_t) {
         available = false;
         maxHurt = mH + 1;
         showChoices = sC;
@@ -742,6 +821,8 @@ public class Game1 {
         sizeH = sH;
         sizeV = sV;
         hDir = hd;
+        basicTime = b_t;
+        extraTime = ex_t;
         maxStep = (mStep > 0) ? mStep : 12;
         location = loc;
         currentPlayer = 0;
@@ -799,7 +880,7 @@ public class Game1 {
                     tileList.get(j).getLeft().substring(0, 2)));
 
         }
-        broadcast("游戏开始: 地图 " + playMap.name + ", 随机数上限 " + maxStep + ", 最多卡住 " + mH + " 次.");
+        broadcast("游戏开始: 地图 " + playMap.name + ", 随机数上限 " + maxStep + ", 最多卡住 " + mH + " 次, 时限 " + basicTime + "+" + extraTime + " 秒.");
         available = true;
         update();
         currentPlayer = n - 1;

@@ -7,7 +7,7 @@ Two to four players take turns to move in a rail transit system, claiming statio
 The player with the most points wins.
 
 ### Scoring
-Each station has a **station value**, which is equal to the number of its neighbouring stations.
+Each station has a `station value`, which is equal to the number of its neighbouring stations.
 By claiming a station, a player gains points equal to the station's value.
 
 ### Movement
@@ -30,13 +30,13 @@ A station is claimed automatically by a player the moment he/she becomes the onl
 * Minecraft version Java 1.20.4
 
 ### Permissions
-* **railchess.op**\
+* `railchess.op`\
 Default: op. Permission for ops.
-* **railchess.edit**\
+* `railchess.edit`\
 Default: op. Permission for map editing.
-* **railchess.play**\
+* `railchess.play`\
 Default: true. Permission for playing Railchess games.
-* **railchess.subscribe**\
+* `railchess.subscribe`\
 Default: true. Permission for spectating Railchess games.
 
 ### Basics
@@ -61,13 +61,13 @@ After each move, the players' points will be given in the form of\
 The game ends if there is only one player left, or all stations have been claimed. 
 The players' final points will be given subsequently.
 
-**Game Replay**\
+`Game Replay`\
 A player joins a RailchessStand, and types a command to replay a previous game. 
 When holding a blaze_rod in the main hand, a player\
 ~ right-clicks to go to the next move;\
 ~ left-clicks to go to the previous move.
 
-**Map Editing**\
+`Map Editing`\
 A player joins a RailchessStand, and types a command to start editing. When holding a blaze_rod in the main hand, a player\
 ~ right-clicks to select an existing station;\
 ~ left-clicks to select an existing station, or create one if there isn't any;\
@@ -78,134 +78,135 @@ By default, every possible path of train exists, e.g., if one connects stations 
 then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. One may block certain train paths through commands.
 
 ### Commands
-**/rcstand**: The plugin's main command.
+`/rcstand`: The plugin's main command.
 
-* **/rcstand create \<horizontalDirectionX\> \<horizontalDirectionZ\> \<width\> \<height\>**\
+* `/rcstand create <horizontalDirectionX> <horizontalDirectionZ> <width> <height>`\
   Requires permission: railchess.edit.\
   Creates a RailchessStand at current location, with the given direction, width, and height. 
   For example, if the player at $(0, 60, 0)$ runs\
-  "/rcstand create 1 0 15 12",\
+  `/rcstand create 1 0 15 12`,\
   a RailchessStand will be created with the four corners $(0, 60, 0)$, $(15, 60, 0)$, $(15, 72, 0)$, and $(0, 72, 0)$.
-* **/rcstand list**\
+* `/rcstand list`\
   Requires permission: None.\
   Lists all RailchessStands on the server.
-* **/rcstand join**\
+* `/rcstand join`\
   Requires permission: railchess.play.\
   Joins the nearest RailchessStand within $8$ blocks. 
   The command fails if no RailchessStands are found, or if the RailchessStand already contains $4$ players.
-* **/rcstand leave**\
+* `/rcstand leave`\
   Requires permission: railchess.play.\
   Leaves the current RailchessStand.
-* **/rcstand duplicate**\
+* `/rcstand duplicate`\
   Requires permission: railchess.edit.\
   Joins the current RailchessStand once more.
-* **/rcstand edit \<mapName\>**\
+* `/rcstand edit <mapName>`\
   Requires permission: railchess.edit.\
   Edits the specified map.
   If the map does not exist, a new map with the given name is created.
-* **/rcstand play|game \<mapName\> \<maxN\> \<maxStucks\> \<hint: true|false\>**\
+* `/rcstand play|game <mapName> <maxN> <maxStucks> <basicTime> <supplementaryTime> <hint: true|false>`\
   Requires permission: railchess.play.\
   Starts a game with all players in the current RailchessStand with permission railchess.play, with the specified map, 
-  the given cap of the random number $n$, and the number of stucks for a player to be permanently skipped.
-  If the final parameter is true, all possible options will be highlighted on a player's turn to move.
-* **/rcstand replay \<gameId\>**\
+  the given cap of the random number $n$, and the number of stucks for a player to be permanently skipped.\
+  The `basicTime` and `supplementaryTime` parameters specify the time limits of one move in seconds. A player is given `basicTime` for every move; if the `basicTime` is used up, the player start consuming the `supplementaryTime`. The `supplementaryTime` is never replenished.\
+  If the final parameter is true, all possible options will be highlighted on a player's turn to move, otherwise, the players have to figure out the options themselves.
+* `/rcstand replay <gameId>`\
   Requires permission: railchess.subscribe.\
   Starts replaying the game with the given id.
-* **/rcstand remove \<standName\>**\
+* `/rcstand remove <standName>`\
   Requires permission: railchess.edit.\
   Removes the RailchessStand with the given name.
 
-**/rcgame**: The command for gameplay.
-* **/rcgame leave**\
+`/rcgame`: The command for gameplay.
+* `/rcgame leave`\
   Requires permission: railchess.subscribe.\
   Leaves current game.
-* **/rcgame spectate**\
+* `/rcgame spectate`\
   Requires permission: railchess.subscribe.\
   Subscribes to the nearest game within $8$ blocks, so as to be informed with developments of the game even if the player is far away.
-* **/rcgame despectate**\
+* `/rcgame despectate`\
   Requires permission: railchess.subscribe.\
   Stops subscribing to the current game.
 
-**/rclog**: The command for game logs.
-* **/rclog all**\
+`/rclog`: The command for game logs.
+* `/rclog all`\
   Requires permission: railchess.subscribe.\
   Lists all previous game logs.
-* **/rclog list \[count\]**\
+* `/rclog list \[count\]`\
   Requires permission: railchess.subscribe.\
   Lists last \[count\] game logs.
 
-**/rcreplay**: The command for game replays.
-* **/rcreplay join**\
+`/rcreplay`: The command for game replays.
+* `/rcreplay join`\
   Requires permission: railchess.subscribe.\
   Joins a nearby game replay.
-* **/rcreplay leave**\
+* `/rcreplay leave`\
   Requires permission: railchess.subscribe.\
   Leaves the present game replay.
-* **/rcreplay goto \<step\>**\
+* `/rcreplay goto <step>`\
   Requires permission: railchess.subscribe.\
   Jumps to the given step.
-* **/rcreplay close**\
+* `/rcreplay close`\
   Requires permission: railchess.subscribe.\
   Closes the current replay.
 
-**/rcmap**: The command for maps.
-* **/rcmap list**\
+`/rcmap`: The command for maps.
+* `/rcmap list`\
   Requires permission: railchess.subscribe.\
   Lists all available maps.
-* **/rcmap rename \<from\> \<to\>**\
+* `/rcmap rename <from> <to>`\
   Requires permission: railchess.edit.\
   Renames the specified map to the given name.
 
-**/rcedit**: The command for editing maps.
-* **/rcedit join**\
+`/rcedit`: The command for editing maps.
+* `/rcedit join`\
   Requires permission: railchess.edit.\
   Joins the nearest map editing in $8$ blocks.
-* **/rcedit leave**\
+* `/rcedit leave`\
   Requires permission: railchess.edit.\
   Leaves from the current map editing.
-* **/rcedit save**\
+* `/rcedit save`\
   Requires permission: railchess.edit.\
   Saves the current map.
-* **/rcedit saveAs \<mapName\>**\
+* `/rcedit saveAs <mapName>`\
   Requires permission: railchess.edit.\
   Saves the current map as the given name. 
   This command can be used for map copying.
-* **/rcedit flush**\
+* `/rcedit flush`\
   Requires permission: railchess.edit.\
   Updates the spawns and station values in the map. 
   Maps are updated automatically on saving.
-* **/rcedit close**\
+* `/rcedit close`\
   Requires permission: railchess.edit.\
   Closes the current editor, without saving the map.
-* **/rcedit readonly**\
+* `/rcedit readonly`\
   Requires permission: railchess.edit.\
   Sets the current map to read-only (so that games can be recorded and replayed).
-* **/rcedit line <lineNumber>**\
+* `/rcedit line <lineNumber>`\
   Requires permission: railchess.edit.\
   Sets the current line number.
-* **/rcedit thoroughfare**\
+* `/rcedit thoroughfare`\
   Requires permission: railchess.edit.\
   Switch to thoroughfare editing mode (instead of editing railway transit lines).
-* **/rcedit connect \<connectType\>**\
+* `/rcedit connect <connectType>`\
   Requires permission: railchess.edit.\
   If connectType is $0$: removes all connections and thoroughfares between the current selected station and the previous selected station.\
   If connectType is $1$: connects the current selected station with the previous selected station with the current line (or with a thoroughfare, if thoroughfares are selected)
   in only one direction (from previous to current).\
   If connectType is $2$: connects the current selected station with the previous selected station with the current line (or with a thoroughfare, if thoroughfares are selected) in both directions 
   (same as right-clicking while sneaking with a blaze_rod in the main hand).
-* **/rcedit add|remove notransfer \<line1\> \<line2\>**\
+* `/rcedit add|remove notransfer <line1> <line2>`\
   Requires permission: railchess.edit.\
   Forbids or allows taking trains of both of the two given lines in one move.
-* **/rcedit add|remove nospawn**\
+* `/rcedit add|remove nospawn`\
   Requires permission: railchess.edit.\
   Forbids or allows players spawning in both the current and previous selected station under most circumstances.
-* **/rcedit add|remove notrain \<from\> \<via\> \<to\> \<line\>**\
+* `/rcedit add|remove notrain <from> <via> <to> <line>`\
   Requires permission: railchess.edit.\
-  Forbids or allows trains from \<from\> to \<to\> via \<via\> on line \<line\>.\
-  Please note that trains from \<to\> to \<from\> via \<via\> are not affected.
+  Forbids or allows trains from <from> to <to> via <via> on line <line>.\
+  Please note that trains from <to> to <from> via <via> are not affected.
 
-**/rcfix**: The command for fixing bugged entities.
-* **/rcfix true**\
+`/rcfix`: The command for fixing bugged entities.
+* `/rcfix true`\
   Requires permission: railchess.edit.\
   Removes all entities summoned by the Railchess plugin within the distance of $16$ blocks.
 
