@@ -7,7 +7,7 @@ Two to four players take turns to move in a rail transit system, claiming statio
 The player with the most points wins.
 
 ### Scoring
-Each station has a `station value`, which is equal to the number of its neighbouring stations.
+Each station has a "station value," which is equal to the number of its neighbouring stations.
 By claiming a station, a player gains points equal to the station's value.
 
 ### Movement
@@ -51,7 +51,7 @@ they must be added manually, for example, by a map-art generator.
 
 **Gameplay**\
 Players join a RailchessStand (by commands), and a player types a command to start a game.
-At one's turn to move, one left/right-clicks on one's destination with a blaze_rod in one's main hand.\
+At one's turn to move, one left/right-clicks on one's destination with `minecraft:blaze_rod` in one's main hand.\
 Each player has a specific colour; 
 a player's position and claimed stations will be marked with his/her respective colour.\
 Players can leave the game by typing commands. 
@@ -61,13 +61,13 @@ After each move, the players' points will be given in the form of\
 The game ends if there is only one player left, or all stations have been claimed. 
 The players' final points will be given subsequently.
 
-`Game Replay`\
+**Game Replay**\
 A player joins a RailchessStand, and types a command to replay a previous game. 
 When holding a blaze_rod in the main hand, a player\
 ~ right-clicks to go to the next move;\
 ~ left-clicks to go to the previous move.
 
-`Map Editing`\
+**Map Editing**\
 A player joins a RailchessStand, and types a command to start editing. When holding a blaze_rod in the main hand, a player\
 ~ right-clicks to select an existing station;\
 ~ left-clicks to select an existing station, or create one if there isn't any;\
