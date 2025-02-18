@@ -149,7 +149,7 @@ public class Game1Logger implements Comparable {
                     move.add(moves.get(i - 1));
                 moves.add(move);
             }
-            Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + logId + ".game1");
+            // Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + logId + ".game1");
             scanner.close();
             return true;
         } catch (Exception e) {

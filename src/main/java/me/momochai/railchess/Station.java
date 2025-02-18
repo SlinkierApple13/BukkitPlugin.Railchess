@@ -2,7 +2,6 @@ package me.momochai.railchess;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 

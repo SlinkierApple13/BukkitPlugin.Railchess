@@ -92,7 +92,7 @@ public class RailchessStand {
             sizeH = scanner.nextDouble();
             sizeV = scanner.nextDouble();
             scanner.close();
-            Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + fileName);
+            // Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + fileName);
             valid = true;
         } catch (Exception ignored) {}
     }

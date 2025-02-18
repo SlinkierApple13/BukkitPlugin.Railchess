@@ -43,6 +43,8 @@ public class MapEditor {
     RailchessStand stand;
     long mapId;
 
+    boolean alignSight = false;
+
     MapEditor(@NotNull Railchess p, @NotNull RailchessStand st, String na, Location loc, Vector hD, double sH, double sV) {
         plugin = p;
         stand = st;
@@ -155,6 +157,11 @@ public class MapEditor {
         return (a - c) * (a - c) * sizeH * sizeH + (b - d) * (b - d) * sizeV * sizeV;
     }
 
+    public void switchAlignSight() {
+        alignSight = !alignSight;
+        broadcastMessage("已" + (alignSight ? "开启" : "关闭") + "对齐.");
+    }
+
     public MutablePair<Boolean, MutablePair<Double, Double>> getSight(Player pl) {
         if (!editingPlayer.contains(pl))
             return MutablePair.of(false, new MutablePair<>());
@@ -171,6 +178,37 @@ public class MapEditor {
         double normH = onMap.dot(hDir) / sizeH;
         double normV = onMap.dot(new Vector(0.0, 1.0, 0.0)) / sizeV;
         boolean valid = (0.0 <= normH && normH <= 1.0 && 0.0 <= normV && normV <= 1.0);
+        if (!valid || !alignSight || !stationList.containsKey(currentStation)) return MutablePair.of(valid, MutablePair.of(normH, normV));
+        double x = normH * sizeH;
+        double y = normV * sizeV;
+        StationWrapper stw = stationList.get(currentStation);
+        double x0 = stw.station.normPos.getLeft() * sizeH;
+        double y0 = stw.station.normPos.getRight() * sizeV;
+        // align along x: (x0, y)
+        // align along y: (x, y0)
+        // align along y = x diagonal: (x0 + inc1, y0 + inc1)
+        double inc1 = 0.5 * (x - x0 + y - y0);
+        // align along y = -x diagonal: (x0 + inc2, y0 - inc2)
+        double inc2 = 0.5 * (x - x0 - y + y0);
+        double x_final = x0, y_final = y0;
+        if ((x_final - x0) * (x_final - x0) + (y_final - y0) * (y_final - y0) < (x - x0) * (x - x0)) {
+            x_final = x;
+            y_final = y0;
+        }
+        if ((x_final - x0) * (x_final - x0) + (y_final - y0) * (y_final - y0) < (y - y0) * (y - y0)) {
+            x_final = x0;
+            y_final = y;
+        }
+        if ((x_final - x0) * (x_final - x0) + (y_final - y0) * (y_final - y0) < 2 * inc1 * inc1) {
+            x_final = x0 + inc1;
+            y_final = y0 + inc1;
+        }
+        if ((x_final - x0) * (x_final - x0) + (y_final - y0) * (y_final - y0) < 2 * inc2 * inc2) {
+            x_final = x0 + inc2;
+            y_final = y0 - inc2;
+        }
+        normH = x_final / sizeH;
+        normV = y_final / sizeV;
         return MutablePair.of(valid, MutablePair.of(normH, normV));
     }
 
@@ -285,7 +323,6 @@ public class MapEditor {
 
     public void removeLine(int line) {
         if (checkReadOnly()) return;
-        ArrayList<Integer> tbdst = new ArrayList<>();
         stationList.forEach((Integer key, StationWrapper value) -> {
             if (value.isOn(line))
                 disconnect(key, (Integer li, Integer st) -> (li == line));

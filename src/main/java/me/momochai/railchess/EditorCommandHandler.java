@@ -144,6 +144,8 @@ public class EditorCommandHandler implements CommandExecutor {
                 editor.close();
             } else if (args[0].equals("readonly")) {
                 editor.makeReadOnly();
+            } else if (args[0].equals("align")) {
+                editor.switchAlignSight();
             } else {
                 return false;
             }

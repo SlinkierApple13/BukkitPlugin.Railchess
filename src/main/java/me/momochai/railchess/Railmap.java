@@ -32,7 +32,7 @@ public class Railmap {
             // Bukkit.getLogger().log(Level.INFO, "Loading " + file.getName());
             exceptionLoad(file);
         } catch (Exception e) {
-           Bukkit.getLogger().log(Level.INFO, e.getMessage());
+            Bukkit.getLogger().log(Level.INFO, e.getMessage());
             return false;
         }
         return true;
@@ -101,7 +101,7 @@ public class Railmap {
             int b = scanner.nextInt();
             spawnRepellence.add(MutablePair.of(a, b));
         }
-       Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + file.getName());
+        // Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + file.getName());
         valid = true;
         scanner.close();
         station.forEach((id, sta) -> {

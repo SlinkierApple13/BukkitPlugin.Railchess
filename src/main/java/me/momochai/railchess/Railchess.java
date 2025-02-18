@@ -178,6 +178,7 @@ public final class Railchess extends JavaPlugin {
             loadStands();
             loadMaps();
             loadLogs();
+            Bukkit.getLogger().log(Level.INFO, "已加载 " + stand.size() + " 个场地, " + railmap.size() + " 张地图, " + logList.size() + " 次对局记录.");
         }
 
         LoadAll() {
