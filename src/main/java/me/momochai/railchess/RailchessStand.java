@@ -28,6 +28,12 @@ public class RailchessStand {
     Game1 game = null;
     Game1Replayer replayer = null;
     boolean valid = false;
+    String defaultMapName = "";
+    int defaultMaxSteps = 0;
+    int defaultMaxHurt = 0;
+    boolean defaultShowChoices = false;
+    int defaultBasicTime = 0;
+    int defaultExtraTime = 0;
 
     public void broadcast(String s) {
         List<Player> subscriber = new ArrayList<>();
@@ -75,7 +81,7 @@ public class RailchessStand {
             fileName = file.getName();
             Scanner scanner = new Scanner(file, StandardCharsets.US_ASCII);
             int version = scanner.nextInt();
-            if (version != 0) {
+            if (version != 0 && version != 1) {
                 Bukkit.getLogger().log(Level.INFO, fileName + " failed to load: version = " + version);
                 scanner.close();
                 return;
@@ -91,6 +97,14 @@ public class RailchessStand {
             hDir = new Vector(h, 0.0, v);
             sizeH = scanner.nextDouble();
             sizeV = scanner.nextDouble();
+            if (version == 1) {
+                defaultMaxSteps = scanner.nextInt();
+                defaultMaxHurt = scanner.nextInt();
+                defaultShowChoices = scanner.nextBoolean();
+                defaultBasicTime = scanner.nextInt();
+                defaultExtraTime = scanner.nextInt();
+                defaultMapName = scanner.nextLine().replaceAll("\\s+","");
+            }
             scanner.close();
             // Bukkit.getLogger().log(Level.INFO, "Successfully loaded " + fileName);
             valid = true;
@@ -121,7 +135,7 @@ public class RailchessStand {
         try {
             file.createNewFile();
             PrintWriter writer = new PrintWriter(file, StandardCharsets.US_ASCII);
-            writer.println(0);
+            writer.println(1);
             writer.println(location.getWorld().getName());
             writer.println(location.getX());
             writer.println(location.getY());
@@ -130,6 +144,12 @@ public class RailchessStand {
             writer.println(hDir.getZ());
             writer.println(sizeH);
             writer.println(sizeV);
+            writer.println(defaultMaxSteps);
+            writer.println(defaultMaxHurt);
+            writer.println(defaultShowChoices);
+            writer.println(defaultBasicTime);
+            writer.println(defaultExtraTime);
+            writer.println(defaultMapName);
             writer.close();
             Bukkit.getLogger().log(Level.INFO, "Successfully saved " + fileName);
         } catch (Exception ignored) {}

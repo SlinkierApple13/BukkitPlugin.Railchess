@@ -103,12 +103,16 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
   Requires permission: railchess.edit.\
   Edits the specified map.
   If the map does not exist, a new map with the given name is created.
-* `/rcstand play|game <mapName> <maxN> <maxStucks> <basicTime> <supplementaryTime> <hint: true|false>`\
+* `/rcstand play <mapName> <maxN> <maxStucks> <basicTime> <supplementaryTime> <hint: true|false>`\
   Requires permission: railchess.play.\
   Starts a game with all players in the current RailchessStand with permission railchess.play, with the specified map, 
   the given cap of the random number $n$, and the number of stucks for a player to be permanently skipped.\
   The `basicTime` and `supplementaryTime` parameters specify the time limits of one move in seconds. A player is given `basicTime` for every move; if the `basicTime` is used up, the player start consuming the `supplementaryTime`. The `supplementaryTime` is never replenished.\
-  If the final parameter is true, all possible options will be highlighted on a player's turn to move, otherwise, the players have to figure out the options themselves.
+  If the final parameter is true, all possible options will be highlighted on a player's turn to move, otherwise, the players have to figure out the options themselves.\
+  If no parameter is specified, the default configuration set previously by `/rcstand default` is used (if valid).
+* `/rcstand default <mapName> <maxN> <maxStucks> <basicTime> <supplementaryTime> <hint: true|false>`\
+  Requires permission: railchess.edit.\
+  Specifies the default configuration for the current stand, so that parameters can be omitted when using `/railchess play`.
 * `/rcstand replay <gameId>`\
   Requires permission: railchess.subscribe.\
   Starts replaying the game with the given id.
@@ -184,6 +188,9 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
 * `/rcedit line <lineNumber>`\
   Requires permission: railchess.edit.\
   Sets the current line number.
+* `/rcedit align`\
+  Requires permission: railchess.edit.\
+  Turn on/off "align mode," in which a new station is aligned to the previous station.
 * `/rcedit thoroughfare`\
   Requires permission: railchess.edit.\
   Switch to thoroughfare editing mode (instead of editing railway transit lines).

@@ -51,6 +51,7 @@ public class Game1 {
     Game1Logger logger;
     int maxNameLength = 0;
     public static final float BIG_BUTTON_SIZE = 0.115f;
+    public static final float SMALL_BUTTON_SIZE = 0.09f;
 
     public class SaveLog extends BukkitRunnable {
 
@@ -162,6 +163,18 @@ public class Game1 {
         int hurt;
         String displayName;
         BarColor barColor;
+        int buttonStyle;
+
+        void switchButtonStyle() {
+            buttonStyle = (buttonStyle + 1) % 3;
+            choices(currentPlayer, getCurrent().step, 1, showChoices);
+        }
+
+        Material buttonTile() {
+            if (buttonStyle == 0) return Material.WHITE_STAINED_GLASS;
+            if (buttonStyle == 1) return Material.LIGHT_GRAY_STAINED_GLASS;
+            return Material.GLASS;
+        }
 
         public class Countdown {
             
@@ -284,6 +297,7 @@ public class Game1 {
             step = 0;
             dead = false;
             hurt = 0;
+            buttonStyle = 0;
             displayName = prefix + pl.getName() + ChatColor.COLOR_CHAR + "r";
             countdown = new Countdown();
            try {
@@ -308,9 +322,16 @@ public class Game1 {
         ItemDisplay entity2;
         // ItemDisplay glower;
         int reachableBy; // sum of (2^(i)) for all reachable player i
+        int reachableBy2; // sum of (2^(i)) for all reachable player i, disregarding the station's occupation state
         boolean cancelMark = false;
         public static final ItemStack DEAD = new ItemStack(Material.GRAY_STAINED_GLASS);
         public static final ItemStack NORMAL = new ItemStack(Material.AIR);
+        
+        boolean isImportant() {
+            if (!occupied || reachableBy2 == 0 || reachableBy2 == 1 || reachableBy2 == 2 || reachableBy2 == 4 ||
+            reachableBy2 == 8 || reachableBy2 == 16 || reachableBy2 == 32) return false;
+            return true;
+        } // whether the station is on the border between two players
 
         public boolean allows(int pl) {
             return !occupied || occupiedBy == pl;
@@ -352,14 +373,14 @@ public class Game1 {
 
         public void autoMark() {
             if (!occupied) {
-                mark(new ItemStack(NORMAL), false, false);
+                mark(new ItemStack(NORMAL), isImportant(), false);
                 return;
             }
             if (dead) {
-                mark(new ItemStack(DEAD), false, false);
+                mark(new ItemStack(DEAD), isImportant(), false);
                 return;
             }
-            mark(playerList.get(occupiedBy).tile, false, false);
+            mark(playerList.get(occupiedBy).tile, isImportant(), false);
         }
 
         public void mark(ItemStack item, boolean bold, boolean big) {
@@ -369,7 +390,7 @@ public class Game1 {
                 cancelMark = false;
                 return;
             }
-            final float size = big ? BIG_BUTTON_SIZE : Railchess.BUTTON_SIZE;
+            final float size = big ? BIG_BUTTON_SIZE : (bold ? Railchess.BUTTON_SIZE : SMALL_BUTTON_SIZE);
             if (entity == null || !entity.isValid()) {
                 entity = (ItemDisplay) location.getWorld().spawnEntity(getLocation(), EntityType.ITEM_DISPLAY);
                 entity.setBrightness(new Display.Brightness(15, 0));
@@ -472,7 +493,7 @@ public class Game1 {
         if (mat.equals(Material.WHITE_CONCRETE))
             return Material.LIGHT_GRAY_CONCRETE;
         if (mat.equals(Material.AIR))
-            return Material.LIGHT_GRAY_STAINED_GLASS;
+            return getCurrent().buttonTile();
         return Material.BLACK_CONCRETE;
     }
 
@@ -634,7 +655,7 @@ public class Game1 {
                     mat = darkened(tileList.get(pl).getRight().getRight().getType());
                 else if (stationList.get(i).occupied)
                     mat = darkened(tileList.get(pl).getRight().getLeft().getType());
-                else mat = darkened(StationWrapper.NORMAL.getType());
+                else mat = playerList.get(pl).buttonTile();
                 stationList.get(i).mark(new ItemStack(mat), playerList.get(pl).position != i
                         /* && stationList.get(i).occupied */, stationList.get(i).occupied);
             } catch (Exception ignored) {}
@@ -677,12 +698,14 @@ public class Game1 {
             if (playerList.get(i).dead) continue;
             taskQueue.add(new Task(i, playerList.get(i).position));
             stationList.get(playerList.get(i).position).reachableBy = (1 << i);
+            stationList.get(playerList.get(i).position).reachableBy2 = (1 << i);
             stationList.get(playerList.get(i).position).update(true, playerList.get(i).tile2);
         }
         for (StationWrapper stw: stationList.values()) {
              if (stw.occupied)
                  playerList.get(stw.occupiedBy).maxScore += stw.station.value;
             stw.reachableBy = 0;
+            stw.reachableBy2 = 0;
         }
         try {
             while (!taskQueue.isEmpty()) {
@@ -707,6 +730,7 @@ public class Game1 {
                     // taskQueue.add(new Task(fr.player, i.getRight(), i.getLeft() == Railmap.THOROUGHFARE));
                     if (!stationList.containsKey(i.getRight())) continue;
                     StationWrapper nb = stationList.get(i.getRight());
+                    nb.reachableBy2 |= (1 << fr.player);
                     if (nb.isReachable(fr.player) || (nb.occupied && nb.occupiedBy != fr.player))
                         continue;
                     nb.setReachable(fr.player);

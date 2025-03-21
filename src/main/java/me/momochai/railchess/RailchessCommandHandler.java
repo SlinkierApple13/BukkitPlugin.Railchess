@@ -74,11 +74,16 @@ public class RailchessCommandHandler implements CommandExecutor {
                 RailchessStand stand = plugin.playerInStand.get(player.getName());
                 if (args[1].isBlank()) return false;
                 stand.newEditor(args[1].replaceAll("\\s+", ""));
-            } else if (args[0].equals("game") || args[0].equals("play")) {
+            } else if (args[0].equals("play")) {
                 if (!player.hasPermission("railchess.play"))
                     return false;
                 if (!plugin.playerInStand.containsKey(player.getName()))
                     return false;
+                if (args[1] == null || args[1].isBlank()) {
+                    RailchessStand stand = plugin.playerInStand.get(player.getName());
+                    return stand.newGame(stand.defaultMapName, stand.defaultMaxSteps, stand.defaultMaxHurt,
+                            stand.defaultShowChoices, stand.defaultBasicTime, stand.defaultExtraTime);
+                }
                 if (args[1] == null || args[2] == null || args[1].isBlank() || args[2].isBlank() ||
                         args[3] == null || args[3].isBlank() || args[4] == null || args[4].isBlank() ||
                         args[5] == null || args[5].isBlank() || args[6] == null || args[6].isBlank())
@@ -120,6 +125,32 @@ public class RailchessCommandHandler implements CommandExecutor {
                     }
                 }
                 return false;
+            } else if (args[0].equals("default")) {
+                if (!player.hasPermission("railchess.edit"))
+                    return false;
+                if (!plugin.playerInStand.containsKey(player.getName()))
+                    return false;
+                if (args[1] == null || args[2] == null || args[1].isBlank() || args[2].isBlank() ||
+                        args[3] == null || args[3].isBlank() || args[4] == null || args[4].isBlank() ||
+                        args[5] == null || args[5].isBlank() || args[6] == null || args[6].isBlank())
+                    return false;
+                if (Integer.parseInt(args[2]) <= 0 || Integer.parseInt(args[2]) >= 13)
+                    return false;
+                RailchessStand stand = plugin.playerInStand.get(player.getName());
+                int maxSteps = Integer.parseInt(args[2]);
+                int maxHurt = Integer.parseInt(args[3]);
+                int basicTime = Integer.parseInt(args[4]);
+                int extraTime = Integer.parseInt(args[5]);
+                boolean showChoices = Boolean.parseBoolean(args[6]);
+                String mapName = args[1].replaceAll("\\s+", "");
+                stand.defaultMapName = mapName;
+                stand.defaultMaxSteps = maxSteps;
+                stand.defaultMaxHurt = maxHurt;
+                stand.defaultBasicTime = basicTime;
+                stand.defaultExtraTime = extraTime;
+                stand.defaultShowChoices = showChoices;
+                Railchess.sendMessage(player, "已设置默认参数.");
+                return true;
             } else {
                 return false;
             }

@@ -37,7 +37,9 @@ public class GameCommandHandler implements CommandExecutor {
             } else if (Objects.equals(args[0], "leave")) {
                 if (plugin.playerInGame.containsKey(name))
                     plugin.playerInGame.get(name).getPlayerWrapper(name).quit(false, "", true, true);
-            } else {
+            } else if (Objects.equals(args[0], "toggle")) {
+                if (plugin.playerInGame.containsKey(name))
+                    plugin.playerInGame.get(name).getPlayerWrapper(name).switchButtonStyle();
                 return false;
             }
         } catch (Exception e) {
