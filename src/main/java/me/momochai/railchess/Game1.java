@@ -47,6 +47,7 @@ public class Game1 {
     boolean available = false;
     boolean showChoices = false;
     boolean log = false;
+    boolean justUpdatedScore = false;
     public static final double BROADCAST_RANGE = 10.0d;
     Game1Logger logger;
     int maxNameLength = 0;
@@ -117,6 +118,7 @@ public class Game1 {
     }
 
     public void broadcast(String s) {
+        justUpdatedScore = false;
         for (Player pl: subscriber)
             if (pl.isValid())
                 Railchess.sendMessage(pl, s);
@@ -300,14 +302,15 @@ public class Game1 {
             buttonStyle = 0;
             displayName = prefix + pl.getName() + ChatColor.COLOR_CHAR + "r";
             countdown = new Countdown();
-           try {
-               char ch = prefix.charAt(1);
-               barColor = BarColor.WHITE;
-               if (ch == 'a') barColor = BarColor.GREEN;
-               if (ch == 'b') barColor = BarColor.BLUE;
-               if (ch == 'd') barColor = BarColor.PINK;
-               if (ch == 'e') barColor = BarColor.YELLOW;
-           } catch (Exception ignored) {}
+            try {
+                char ch = prefix.charAt(1);
+                barColor = BarColor.WHITE;
+                if (ch == 'a') barColor = BarColor.GREEN;
+                if (ch == 'b') barColor = BarColor.BLUE;
+                if (ch == 'd') barColor = BarColor.PINK;
+                if (ch == 'e') barColor = BarColor.YELLOW;
+                if (ch == 'c') barColor = BarColor.RED;
+            } catch (Exception ignored) {}
         }
 
     }
@@ -492,6 +495,10 @@ public class Game1 {
             return Material.LIGHT_GRAY_STAINED_GLASS;
         if (mat.equals(Material.WHITE_CONCRETE))
             return Material.LIGHT_GRAY_CONCRETE;
+        if (mat.equals(Material.RED_STAINED_GLASS))
+            return Material.BROWN_STAINED_GLASS;
+        if (mat.equals(Material.RED_CONCRETE))
+            return Material.BROWN_CONCRETE;
         if (mat.equals(Material.AIR))
             return getCurrent().buttonTile();
         return Material.BLACK_CONCRETE;
@@ -512,6 +519,8 @@ public class Game1 {
     }
 
     public PlayerWrapper getPlayerWrapper(String playerName) {
+        if (getCurrentPlayer().getName().equals(playerName))
+            return getCurrent();
         for (PlayerWrapper plw: playerList) {
             if (plw.playerName.equals(playerName))
                 return plw;
@@ -751,16 +760,23 @@ public class Game1 {
                 plw.quit(true, "已占领所有可能到达的车站", true, true);
             if (!available) return;
         }
-        for (int i = 0; i < n; ++i) {
+        if (!justUpdatedScore) for (int i = 0; i < n; ++i) {
             String tail = ChatColor.COLOR_CHAR + "6" + ChatColor.COLOR_CHAR + "r";
-            if (!(playerList.get(i).prevScore == -1 || playerList.get(i).prevScore == playerList.get(i).score))
-                tail = ChatColor.COLOR_CHAR + "6+" + (playerList.get(i).score - playerList.get(i).prevScore) + ChatColor.COLOR_CHAR + "r";
+            if (!(playerList.get(i).prevScore == -1 || playerList.get(i).prevScore == playerList.get(i).score)) {
+                int diff = playerList.get(i).score - playerList.get(i).prevScore;
+                if (diff < 30)
+                    tail = ChatColor.COLOR_CHAR + "f+" + diff + ChatColor.COLOR_CHAR + "r";
+                else if (diff > 99)
+                    tail = ChatColor.COLOR_CHAR + "c+" + diff + ChatColor.COLOR_CHAR + "r";
+                else tail = ChatColor.COLOR_CHAR + "6+" + diff + ChatColor.COLOR_CHAR + "r";
+            }
             plainBroadcast(String.format("%" + (maxNameLength + 4) + "s", playerList.get(i).displayName) + " -" +
                     String.format("%" + 5 + "s", playerList.get(i).score) + " /" + ChatColor.COLOR_CHAR + "7" +
                     String.format("%" + 5 + "s", playerList.get(i).maxScore) + ChatColor.COLOR_CHAR + "r" +
                     String.format("%" + 10 + "s", tail));
             playerList.get(i).prevScore = playerList.get(i).score;
         }
+        justUpdatedScore = true;
     }
 
     Boolean canTransfer(int a, int b) {
@@ -806,6 +822,8 @@ public class Game1 {
                     MutablePair.of(new ItemStack(Material.LIME_STAINED_GLASS), new ItemStack(Material.LIME_CONCRETE));
             case 4 ->
                     MutablePair.of(new ItemStack(Material.LIGHT_BLUE_STAINED_GLASS), new ItemStack(Material.LIGHT_BLUE_CONCRETE));
+            case 5 ->
+                    MutablePair.of(new ItemStack(Material.RED_STAINED_GLASS), new ItemStack(Material.RED_CONCRETE));
             default ->
                     MutablePair.of(new ItemStack(Material.BLACK_STAINED_GLASS), new ItemStack(Material.BLACK_CONCRETE));
         };
@@ -820,6 +838,8 @@ public class Game1 {
             return 3;
         if (Objects.equals(str, ChatColor.COLOR_CHAR + "b蓝色"))
             return 4;
+        if (Objects.equals(str, ChatColor.COLOR_CHAR + "c红色"))
+            return 5;
         return -1;
     }
 
@@ -868,10 +888,13 @@ public class Game1 {
         n = p.size();
         remainingPlayers = p.size();
         Collections.shuffle(p);
+        Collections.shuffle(p);
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "e黄色", displayTiles(1)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "d粉色", displayTiles(2)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "a绿色", displayTiles(3)));
         tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "b蓝色", displayTiles(4)));
+        // tileList.add(MutablePair.of(ChatColor.COLOR_CHAR + "c红色", displayTiles(5)));
+        Collections.shuffle(tileList);
         Collections.shuffle(tileList);
         if (log) {
             logger = new Game1Logger(playMap.mapId);

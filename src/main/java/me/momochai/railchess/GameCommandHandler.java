@@ -37,9 +37,16 @@ public class GameCommandHandler implements CommandExecutor {
             } else if (Objects.equals(args[0], "leave")) {
                 if (plugin.playerInGame.containsKey(name))
                     plugin.playerInGame.get(name).getPlayerWrapper(name).quit(false, "", true, true);
-            } else if (Objects.equals(args[0], "toggle")) {
+            } else if (Objects.equals(args[0], "resign")) {
                 if (plugin.playerInGame.containsKey(name))
-                    plugin.playerInGame.get(name).getPlayerWrapper(name).switchButtonStyle();
+                    plugin.playerInGame.get(name).getPlayerWrapper(name).quit(true, "认负", true, true);
+            } else if (Objects.equals(args[0], "toggle")) {
+                if (plugin.playerInGame.containsKey(name)) {
+                    Game1 g = plugin.playerInGame.get(name);
+                    if (g.getCurrentPlayer().getName().equals(name))
+                        g.getCurrent().switchButtonStyle();
+                    else g.getPlayerWrapper(name).switchButtonStyle();
+                }
                 return false;
             }
         } catch (Exception e) {

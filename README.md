@@ -122,8 +122,11 @@ then trains following the paths $a-b-c$, $a-b-d$, and $c-b-d$ are all possible. 
 
 `/rcgame`: The command for gameplay.
 * `/rcgame leave`\
-  Requires permission: railchess.subscribe.\
+  Requires permission: railchess.play.\
   Leaves current game.
+* `/rcgame resign`\
+  Requires permission: railchess.play.\
+  Leave on resignation.
 * `/rcgame spectate`\
   Requires permission: railchess.subscribe.\
   Subscribes to the nearest game within $8$ blocks, so as to be informed with developments of the game even if the player is far away.
