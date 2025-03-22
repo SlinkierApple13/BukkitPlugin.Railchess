@@ -764,11 +764,9 @@ public class Game1 {
             String tail = ChatColor.COLOR_CHAR + "6" + ChatColor.COLOR_CHAR + "r";
             if (!(playerList.get(i).prevScore == -1 || playerList.get(i).prevScore == playerList.get(i).score)) {
                 int diff = playerList.get(i).score - playerList.get(i).prevScore;
-                if (diff < 30)
-                    tail = ChatColor.COLOR_CHAR + "f+" + diff + ChatColor.COLOR_CHAR + "r";
-                else if (diff > 99)
-                    tail = ChatColor.COLOR_CHAR + "c+" + diff + ChatColor.COLOR_CHAR + "r";
-                else tail = ChatColor.COLOR_CHAR + "6+" + diff + ChatColor.COLOR_CHAR + "r";
+                if (diff < 10) tail = ChatColor.COLOR_CHAR + "f+" + diff + ChatColor.COLOR_CHAR + "r";
+                if (diff >= 10 && diff < 100) tail = ChatColor.COLOR_CHAR + "6+" + diff + ChatColor.COLOR_CHAR + "r";
+                if (diff >= 100) tail = ChatColor.COLOR_CHAR + "c+" + diff + ChatColor.COLOR_CHAR + "r";
             }
             plainBroadcast(String.format("%" + (maxNameLength + 4) + "s", playerList.get(i).displayName) + " -" +
                     String.format("%" + 5 + "s", playerList.get(i).score) + " /" + ChatColor.COLOR_CHAR + "7" +
